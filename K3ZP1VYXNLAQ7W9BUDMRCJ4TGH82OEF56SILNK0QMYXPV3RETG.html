@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Brama SGS</title>
+  <meta name="theme-color" content="#000000"/>
+  <link rel="apple-touch-icon" href="icon.jpg"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 0;
+      margin: 0;
+      height: 100vh;
+      background: url('img1.jpg') no-repeat center center fixed;
+      background-size: cover;
+      position: relative;
+    }
+
+    h1 {
+      position: relative;
+      z-index: 1;
+      margin-top: 50px;
+      color: white;
+    }
+
+    button {
+      padding: 15px 30px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      margin: 10px;
+      width: 260px;
+      height: 60px;
+      background-color: rgba(255, 255, 255, 0.3);
+      color: black;
+      border-radius: 8px;
+      z-index: 1;
+      position: relative;
+      backdrop-filter: blur(4px);
+      border: 3px solid #4CAF50;
+      transition: transform 0.1s ease, background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: rgba(255, 255, 255, 0.5);
+    }
+
+    button:active {
+      transform: scale(0.97);
+    }
+
+    div {
+      z-index: 1;
+      position: relative;
+    }
+  </style>
+</head>
+<body>
+
+  <h1 id="status">Dzień Dobry</h1>
+
+  <div>
+    <button id="btn1">Brama</button>
+  </div>
+
+  <script>
+    function sendBlynkRequest() {
+      return fetch(`https://fra1.blynk.cloud/external/api/update?token=zAM3zOp4JCYabvYGvtKIz9Gv0My3OIYs&v3=1`)
+        .then(response => response.text());
+    }
+
+    function showMessage(text, duration) {
+      const status = document.getElementById('status');
+      const original = status.textContent;
+      status.textContent = text;
+      setTimeout(() => {
+        status.textContent = original;
+      }, duration);
+    }
+
+    document.getElementById('btn1').addEventListener('click', function() {
+      showMessage("Wysyłam polecenie HTTP", 1000);
+      sendBlynkRequest().then(data => console.log('Brama:', data));
+    });
+  </script>
+
+</body>
+</html>

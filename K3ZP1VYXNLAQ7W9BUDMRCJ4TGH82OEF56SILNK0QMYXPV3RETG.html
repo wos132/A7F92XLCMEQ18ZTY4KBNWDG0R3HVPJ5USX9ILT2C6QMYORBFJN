@@ -57,37 +57,100 @@
       transform: scale(0.97);
     }
 
-    div {
-      z-index: 1;
-      position: relative;
+    #logoutBtn {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      padding: 8px 15px;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 6px;
+      border: none;
+      background-color: rgba(255, 255, 255, 0.7);
+      color: black;
+      z-index: 10;
+      transition: background-color 0.3s ease;
+    }
+
+    #loginNoticeBtn {
+      font-size: 36px;
+      color: white;
+      margin-top: 40vh;
+      background: rgba(255, 255, 255, 0.3);
+      padding: 20px 40px;
+      border: 2px solid white;
+      border-radius: 10px;
+      backdrop-filter: blur(6px);
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    #loginNoticeBtn:hover {
+      background-color: rgba(255, 255, 255, 0.5);
+    }
+
+    #mainContent {
+      display: none;
     }
   </style>
 </head>
 <body>
 
-  <h1 id="status">Dzień Dobry</h1>
+  <button id="logoutBtn">Wyloguj się</button>
 
-  <div>
-    <button id="btn1">Otwieranie Bramy</button>
+  <div id="mainContent">
+    <h1 id="status">Dzień Dobry <span id="username"></span></h1>
+    <div>
+      <button id="btn1">Otwieranie Bramy</button>
+    </div>
   </div>
 
+  <button id="loginNoticeBtn" style="display: none;">Zaloguj się</button>
+
   <script>
-    function sendBlynkRequest() {
-  // Ustawia pin V3 na 1 (stan wysoki)
-  fetch(`https://fra1.blynk.cloud/external/api/update?token=zAM3zOp4JCYabvYGvtKIz9Gv0My3OIYs&v3=1`)
-    .then(response => response.text())
-    .then(data => {
-      console.log('Brama ON:', data);
+    function capitalizeName(name) {
+      return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+    }
 
-      // Po 1 sekundzie ustawia pin V3 z powrotem na 0 (stan niski)
-      setTimeout(() => {
-        fetch(`https://fra1.blynk.cloud/external/api/update?token=zAM3zOp4JCYabvYGvtKIz9Gv0My3OIYs&v3=0`)
-          .then(response => response.text())
-          .then(data => console.log('Brama OFF:', data));
-      }, 1000);
+    let userId = localStorage.getItem("SGS_userId");
+
+    if (!userId) {
+      userId = prompt("Podaj imię:");
+      if (userId && userId.trim()) {
+        userId = capitalizeName(userId.trim());
+        localStorage.setItem("SGS_userId", userId);
+      }
+    }
+
+    const mainContent = document.getElementById("mainContent");
+    const loginNoticeBtn = document.getElementById("loginNoticeBtn");
+
+    if (userId) {
+      document.getElementById("username").innerText = userId;
+      mainContent.style.display = "block";
+    } else {
+      loginNoticeBtn.style.display = "inline-block";
+      document.getElementById("logoutBtn").style.display = "none";
+    }
+
+    loginNoticeBtn.addEventListener('click', () => {
+      location.reload();
     });
-}
 
+    function sendBlynkRequest() {
+      console.log("🔓 Użytkownik '" + userId + "' otwiera bramę");
+
+      fetch(`https://fra1.blynk.cloud/external/api/update?token=zAM3zOp4JCYabvYGvtKIz9Gv0My3OIYs&v3=1`)
+        .then(response => response.text())
+        .then(data => {
+          console.log('Brama ON:', data);
+          setTimeout(() => {
+            fetch(`https://fra1.blynk.cloud/external/api/update?token=zAM3zOp4JCYabvYGvtKIz9Gv0My3OIYs&v3=0`)
+              .then(response => response.text())
+              .then(data => console.log('Brama OFF:', data));
+          }, 1000);
+        });
+    }
 
     function showMessage(text, duration) {
       const status = document.getElementById('status');
@@ -98,9 +161,14 @@
       }, duration);
     }
 
-    document.getElementById('btn1').addEventListener('click', function() {
+    document.getElementById('btn1')?.addEventListener('click', function() {
       showMessage("Wysyłam polecenie HTTP", 1000);
-      sendBlynkRequest().then(data => console.log('Brama:', data));
+      sendBlynkRequest();
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      localStorage.removeItem("SGS_userId");
+      location.reload();
     });
   </script>
 

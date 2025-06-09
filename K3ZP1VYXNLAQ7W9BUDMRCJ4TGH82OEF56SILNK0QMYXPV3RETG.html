@@ -73,9 +73,21 @@
 
   <script>
     function sendBlynkRequest() {
-      return fetch(`https://fra1.blynk.cloud/external/api/update?token=zAM3zOp4JCYabvYGvtKIz9Gv0My3OIYs&v3=1`)
-        .then(response => response.text());
-    }
+  // Ustawia pin V3 na 1 (stan wysoki)
+  fetch(`https://fra1.blynk.cloud/external/api/update?token=zAM3zOp4JCYabvYGvtKIz9Gv0My3OIYs&v3=1`)
+    .then(response => response.text())
+    .then(data => {
+      console.log('Brama ON:', data);
+
+      // Po 1 sekundzie ustawia pin V3 z powrotem na 0 (stan niski)
+      setTimeout(() => {
+        fetch(`https://fra1.blynk.cloud/external/api/update?token=zAM3zOp4JCYabvYGvtKIz9Gv0My3OIYs&v3=0`)
+          .then(response => response.text())
+          .then(data => console.log('Brama OFF:', data));
+      }, 1000);
+    });
+}
+
 
     function showMessage(text, duration) {
       const status = document.getElementById('status');

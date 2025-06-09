@@ -74,25 +74,51 @@
       transform: scale(0.97);
     }
 
-   #loginNoticeBtn {
-  font-size: 36px;
-  color: white;
-  background: none;
-  padding: 0;
-  border: none;
-  border-radius: 0;
-  backdrop-filter: none;
-  cursor: pointer;
-  transition: opacity 0.3s ease;
-  display: none;
-  max-width: 90vw;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
+    #loginNoticeBtn {
+      font-size: 36px;
+      color: white;
+      background: none;
+      padding: 0;
+      border: none;
+      border-radius: 0;
+      backdrop-filter: none;
+      cursor: pointer;
+      transition: opacity 0.3s ease;
+      display: none;
+      max-width: 90vw;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
 
+    .version {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      color: white;
+      font-size: 14px;
+      background-color: rgba(0, 0, 0, 0.4);
+      padding: 5px 10px;
+      border-radius: 6px;
+      z-index: 10;
+    }
 
+    .logo {
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
+      z-index: 10;
+      display: none;
+    }
+
+    .logo img {
+      height: 80px;
+      width: auto;
+      border-radius: 6px;
+      background-color: rgba(0, 0, 0, 0.4);
+      padding: 3px;
+    }
 
     #loginNoticeBtn:hover {
       background-color: rgba(255, 255, 255, 0.5);
@@ -106,133 +132,139 @@
   <img src="ElektronikEle_preview_rev_1.png" id="logo" alt="Logo ElektronikEle" />
 
   <div id="mainContent">
-    <h1 id="status">Dzień Dobry <span id="username"></span></h1>
+    <h2 id="status">Dzień Dobry <span id="username"></span></h2>
     <button id="btn1">Otwieranie Bramy</button>
   </div>
 
-<button id="loginNoticeBtn">Kliknij, aby podać imię</button>
+  <button id="loginNoticeBtn">Kliknij, aby podać imię</button>
+
+  <div class="version">Wersja: 1.3a (Beta)</div>
+  <div class="logo">
+    <img src="ElektronikEle_preview_rev_1.png" alt="Logo">
+  </div>
 
   <script>
-  function capitalizeName(name) {
-    return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
-  }
+    function capitalizeName(name) {
+      return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+    }
 
-  const logo = document.getElementById('logo');
-  const mainContent = document.getElementById('mainContent');
-  const loginNoticeBtn = document.getElementById('loginNoticeBtn');
-  const status = document.getElementById('status');
-  const usernameSpan = document.getElementById('username');
-  const openGateBtn = document.getElementById('btn1');
+    const logo = document.getElementById('logo');
+    const mainContent = document.getElementById('mainContent');
+    const loginNoticeBtn = document.getElementById('loginNoticeBtn');
+    const status = document.getElementById('status');
+    const usernameSpan = document.getElementById('username');
+    const openGateBtn = document.getElementById('btn1');
+    const bottomLogo = document.querySelector('.logo');
 
-  let userId = null;
-  let longPressTimer = null;
+    let userId = null;
+    let longPressTimer = null;
 
-  function askForName() {
-    let name = prompt("Podaj imię:");
-    if (name && name.trim()) {
-      userId = capitalizeName(name.trim());
-      localStorage.setItem("SGS_userId", userId);
-      showMainContent();
-    } else {
-      userId = null;
+    function askForName() {
+      let name = prompt("Podaj imię:");
+      if (name && name.trim()) {
+        userId = capitalizeName(name.trim());
+        localStorage.setItem("SGS_userId", userId);
+        showMainContent();
+      } else {
+        userId = null;
+        localStorage.removeItem("SGS_userId");
+        showLoginNotice();
+      }
+    }
+
+    function showLogoThenAskName() {
+      userId = localStorage.getItem("SGS_userId");
+      if (!userId) {
+        logo.style.display = 'block';
+        mainContent.style.display = 'none';
+        loginNoticeBtn.style.display = 'none';
+
+        setTimeout(() => {
+          logo.style.display = 'none';
+          showLoginNotice();
+        }, 5000);
+      } else {
+        logo.style.display = 'none';
+        showMainContent();
+      }
+    }
+
+    function showMainContent() {
+      usernameSpan.textContent = userId;
+      mainContent.style.display = 'block';
+      loginNoticeBtn.style.display = 'none';
+      bottomLogo.style.display = 'block';
+    }
+
+    function showLoginNotice() {
+      mainContent.style.display = 'none';
+      loginNoticeBtn.style.display = 'inline-block';
+      bottomLogo.style.display = 'none';
+    }
+
+    loginNoticeBtn.addEventListener('click', () => {
+      askForName();
+    });
+
+    openGateBtn.addEventListener('click', () => {
+      if (!userId) return;
+      showMessage("Wysyłam polecenie HTTP", 1000);
+      sendBlynkRequest();
+    });
+
+    function showMessage(text, duration) {
+      const original = status.textContent;
+      status.textContent = text;
+      setTimeout(() => {
+        status.textContent = original;
+      }, duration);
+    }
+
+    function sendBlynkRequest() {
+      console.log("🔓 Użytkownik '" + userId + "' otwiera bramę");
+
+      fetch(`https://fra1.blynk.cloud/external/api/update?token=zAM3zOp4JCYabvYGvtKIz9Gv0My3OIYs&v3=1`)
+        .then(response => response.text())
+        .then(data => {
+          console.log('Brama ON:', data);
+          setTimeout(() => {
+            fetch(`https://fra1.blynk.cloud/external/api/update?token=zAM3zOp4JCYabvYGvtKIz9Gv0My3OIYs&v3=0`)
+              .then(response => response.text())
+              .then(data => console.log('Brama OFF:', data));
+          }, 1000);
+        });
+    }
+
+    function logout() {
       localStorage.removeItem("SGS_userId");
+      userId = null;
       showLoginNotice();
     }
-  }
 
-  function showLogoThenAskName() {
-    userId = localStorage.getItem("SGS_userId");
-    if (!userId) {
-      logo.style.display = 'block';
-      mainContent.style.display = 'none';
-      loginNoticeBtn.style.display = 'none';
+    status.addEventListener('mousedown', startLongPress);
+    status.addEventListener('touchstart', startLongPress);
 
-      setTimeout(() => {
-        logo.style.display = 'none';
-        showLoginNotice();
-      }, 5000);
-    } else {
-      logo.style.display = 'none';
-      showMainContent();
+    status.addEventListener('mouseup', cancelLongPress);
+    status.addEventListener('mouseleave', cancelLongPress);
+    status.addEventListener('touchend', cancelLongPress);
+    status.addEventListener('touchcancel', cancelLongPress);
+
+    function startLongPress(e) {
+      e.preventDefault();
+      if (!userId) return;
+      longPressTimer = setTimeout(() => {
+        logout();
+      }, 8000);
     }
-  }
 
-  function showMainContent() {
-    usernameSpan.textContent = userId;
-    mainContent.style.display = 'block';
-    loginNoticeBtn.style.display = 'none';
-  }
-
-  function showLoginNotice() {
-    mainContent.style.display = 'none';
-    loginNoticeBtn.style.display = 'inline-block';
-  }
-
-  loginNoticeBtn.addEventListener('click', () => {
-    askForName();
-  });
-
-  openGateBtn.addEventListener('click', () => {
-    if (!userId) return;
-    showMessage("Wysyłam polecenie HTTP", 1000);
-    sendBlynkRequest();
-  });
-
-  function showMessage(text, duration) {
-    const original = status.textContent;
-    status.textContent = text;
-    setTimeout(() => {
-      status.textContent = original;
-    }, duration);
-  }
-
-  function sendBlynkRequest() {
-    console.log("🔓 Użytkownik '" + userId + "' otwiera bramę");
-
-    fetch(`https://fra1.blynk.cloud/external/api/update?token=zAM3zOp4JCYabvYGvtKIz9Gv0My3OIYs&v3=1`)
-      .then(response => response.text())
-      .then(data => {
-        console.log('Brama ON:', data);
-        setTimeout(() => {
-          fetch(`https://fra1.blynk.cloud/external/api/update?token=zAM3zOp4JCYabvYGvtKIz9Gv0My3OIYs&v3=0`)
-            .then(response => response.text())
-            .then(data => console.log('Brama OFF:', data));
-        }, 1000);
-      });
-  }
-
-  function logout() {
-    localStorage.removeItem("SGS_userId");
-    userId = null;
-    showLoginNotice();
-  }
-
-  status.addEventListener('mousedown', startLongPress);
-  status.addEventListener('touchstart', startLongPress);
-
-  status.addEventListener('mouseup', cancelLongPress);
-  status.addEventListener('mouseleave', cancelLongPress);
-  status.addEventListener('touchend', cancelLongPress);
-  status.addEventListener('touchcancel', cancelLongPress);
-
-  function startLongPress(e) {
-    e.preventDefault();
-    if (!userId) return;
-    longPressTimer = setTimeout(() => {
-      logout();
-    }, 8000);
-  }
-
-  function cancelLongPress(e) {
-    if (longPressTimer) {
-      clearTimeout(longPressTimer);
-      longPressTimer = null;
+    function cancelLongPress(e) {
+      if (longPressTimer) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+      }
     }
-  }
 
-  showLogoThenAskName();
-</script>
-
-
+    showLogoThenAskName();
+  </script>
 </body>
 </html>

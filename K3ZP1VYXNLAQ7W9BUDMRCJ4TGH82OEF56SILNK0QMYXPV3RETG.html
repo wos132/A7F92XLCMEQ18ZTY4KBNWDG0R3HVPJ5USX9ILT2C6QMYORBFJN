@@ -221,19 +221,28 @@
     }
 
     function sendBlynkRequest() {
-      console.log("🔓 Użytkownik '" + userId + "' otwiera bramę");
+  console.log("🔓 Użytkownik '" + userId + "' otwiera bramę");
 
-      fetch(`https://fra1.blynk.cloud/external/api/update?token=zAM3zOp4JCYabvYGvtKIz9Gv0My3OIYs&v2=1`)
-        .then(response => response.text())
-        .then(data => {
-          console.log('Brama ON:', data);
-          setTimeout(() => {
-            fetch(`https://fra1.blynk.cloud/external/api/update?token=zAM3zOp4JCYabvYGvtKIz9Gv0My3OIYs&v3=0`)
-              .then(response => response.text())
-              .then(data => console.log('Brama OFF:', data));
-          }, 1000);
-        });
-    }
+  fetch(`https://fra1.blynk.cloud/external/api/update?token=zAM3zOp4JCYabvYGvtKIz9Gv0My3OIYs&v2=1`)
+    .then(response => response.text())
+    .then(data => {
+      console.log('Brama ON:', data);
+
+      // Dodatkowe polecenie dla użytkownika Maja
+      if (userId === "Maja") {
+        fetch(`https://fra1.blynk.cloud/external/api/update?token=zAM3zOp4JCYabvYGvtKIz9Gv0My3OIYs&v0=1`)
+          .then(response => response.text())
+          .then(data => console.log('Dodatkowy pin V0 ustawiony:', data));
+      }
+
+      setTimeout(() => {
+        fetch(`https://fra1.blynk.cloud/external/api/update?token=zAM3zOp4JCYabvYGvtKIz9Gv0My3OIYs&v3=0`)
+          .then(response => response.text())
+          .then(data => console.log('Brama OFF:', data));
+      }, 1000);
+    });
+}
+
 
     function logout() {
       localStorage.removeItem("SGS_userId");

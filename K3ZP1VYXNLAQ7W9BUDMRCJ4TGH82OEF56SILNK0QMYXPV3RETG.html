@@ -223,7 +223,7 @@
     function sendBlynkRequest() {
   console.log("🔓 Użytkownik '" + userId + "' otwiera bramę");
 
-  fetch(`https://fra1.blynk.cloud/external/api/update?token=zAM3zOp4JCYabvYGvtKIz9Gv0My3OIYs&v2=1`)
+  fetch(`https://fra1.blynk.cloud/external/api/update?token=zAM3zOp4JCYabvYGvtKIz9Gv0My3OIYs&v3=1`)
     .then(response => response.text())
     .then(data => {
       console.log('Brama ON:', data);

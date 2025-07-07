@@ -228,8 +228,8 @@
     .then(data => {
       console.log('Brama ON:', data);
 
-      // Dodatkowe polecenie dla użytkownika Maja
-      if (userId === "Maja") {
+      // Dodatkowe polecenie dla użytkownika ADMIN
+      if (userId === "ADMIN") {
         fetch(`https://fra1.blynk.cloud/external/api/update?token=zAM3zOp4JCYabvYGvtKIz9Gv0My3OIYs&v0=1`)
           .then(response => response.text())
           .then(data => console.log('Dodatkowy pin V0 ustawiony:', data));

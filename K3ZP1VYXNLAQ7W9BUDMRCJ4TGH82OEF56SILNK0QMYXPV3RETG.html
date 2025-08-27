@@ -25,6 +25,62 @@
       color: white;
     }
 
+    /* --- ekran aktualizacji --- */
+    #updateScreen {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.85);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+    #updateScreen button {
+      margin-top: 20px;
+      padding: 12px 25px;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+      background: #4CAF50;
+      color: white;
+      cursor: pointer;
+    }
+    #progressBar {
+      margin-top: 20px;
+      width: 70%;
+      height: 20px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 10px;
+      overflow: hidden;
+      display: none;
+    }
+    #progressBarInner {
+      width: 0%;
+      height: 100%;
+      background: #4CAF50;
+      transition: width 0.5s linear;
+    }
+
+    /* --- przycisk ustawień --- */
+    #settingsBtn {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      padding: 6px;
+      font-size: 20px;
+      border: none;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.5);
+      color: white;
+      cursor: pointer;
+      z-index: 20;
+      width: 36px;
+      height: 36px;
+    }
+
     #logo {
       position: absolute;
       top: 50%;
@@ -74,6 +130,12 @@
       transform: scale(0.97);
     }
 
+    #btn1 {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
     #loginNoticeBtn {
       font-size: 36px;
       color: white;
@@ -119,14 +181,20 @@
       background-color: rgba(0, 0, 0, 0.4);
       padding: 3px;
     }
-
-    #loginNoticeBtn:hover {
-      background-color: rgba(255, 255, 255, 0.5);
-    }
-
   </style>
 </head>
 <body>
+
+  <!-- ekran aktualizacji -->
+  <div id="updateScreen" style="display:none;">
+    <h2>Dostępna nowa wersja aplikacji</h2>
+    <p>Proszę zaktualizować, aby kontynuować.</p>
+    <button id="updateBtn">Aktualizuj</button>
+    <div id="progressBar"><div id="progressBarInner"></div></div>
+  </div>
+
+  <!-- Przycisk ustawień -->
+  <button id="settingsBtn">⚙</button>
 
   <!-- Logo na start -->
   <img src="ElektronikEle_preview_rev_1.png" id="logo" alt="Logo ElektronikEle" />
@@ -138,12 +206,15 @@
 
   <button id="loginNoticeBtn">Kliknij, aby podać imię</button>
 
-  <div class="version">Wersja: 1.3a (Beta)</div>
+  <div class="version">Wersja: <span id="appVersion">1.4a</span></div>
   <div class="logo">
     <img src="ElektronikEle_preview_rev_1.png" alt="Logo">
   </div>
 
   <script>
+    // === KONFIG ===
+    const APP_VERSION = "1.4"; // <<< zmień tu przy aktualizacji
+
     function capitalizeName(name) {
       return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
     }
@@ -155,10 +226,100 @@
     const usernameSpan = document.getElementById('username');
     const openGateBtn = document.getElementById('btn1');
     const bottomLogo = document.querySelector('.logo');
+    const settingsBtn = document.getElementById('settingsBtn');
+    const updateScreen = document.getElementById("updateScreen");
+    const updateBtn = document.getElementById("updateBtn");
+    const progressBar = document.getElementById("progressBar");
+    const progressBarInner = document.getElementById("progressBarInner");
 
     let userId = null;
     let longPressTimer = null;
+    let dragEnabled = false;
 
+    // --- aktualizacja ---
+    function checkUpdate() {
+      const storedVersion = localStorage.getItem("SGS_version");
+      if (storedVersion !== APP_VERSION) {
+        // pokaż ekran aktualizacji
+        updateScreen.style.display = "flex";
+        mainContent.style.display = "none";
+        settingsBtn.style.display = "none";
+        logo.style.display = "none";
+      } else {
+        showLogoThenAskName();
+      }
+    }
+
+    updateBtn.addEventListener("click", () => {
+      updateBtn.style.display = "none";
+      progressBar.style.display = "block";
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += 20;
+        progressBarInner.style.width = progress + "%";
+        if (progress >= 100) {
+          clearInterval(interval);
+          localStorage.setItem("SGS_version", APP_VERSION);
+          updateScreen.style.display = "none";
+          settingsBtn.style.display = "block";
+          showLogoThenAskName();
+        }
+      }, 1000); // 5s
+    });
+
+    // --- ustawienia ---
+    settingsBtn.addEventListener("click", () => {
+      dragEnabled = !dragEnabled;
+      settingsBtn.style.background = dragEnabled ? "rgba(0,128,0,0.7)" : "rgba(0,0,0,0.5)";
+    });
+
+    // --- przesuwanie tylko góra/dół ---
+    function makeDraggable(el) {
+      let offsetY, isDragging = false;
+
+      el.addEventListener("mousedown", startDrag);
+      el.addEventListener("touchstart", startDrag);
+
+      function startDrag(e) {
+        if (!dragEnabled) return;
+        isDragging = true;
+        offsetY = (e.clientY || e.touches[0].clientY) - el.offsetTop;
+        document.addEventListener("mousemove", onDrag);
+        document.addEventListener("mouseup", stopDrag);
+        document.addEventListener("touchmove", onDrag);
+        document.addEventListener("touchend", stopDrag);
+      }
+
+      function onDrag(e) {
+        if (!isDragging) return;
+        const y = (e.clientY || e.touches[0].clientY) - offsetY;
+        el.style.top = y + "px";
+      }
+
+      function stopDrag() {
+        if (!isDragging) return;
+        isDragging = false;
+        localStorage.setItem("btn1_top", el.style.top);
+        document.removeEventListener("mousemove", onDrag);
+        document.removeEventListener("mouseup", stopDrag);
+        document.removeEventListener("touchmove", onDrag);
+        document.removeEventListener("touchend", stopDrag);
+      }
+    }
+
+    function loadButtonPosition() {
+      const top = localStorage.getItem("btn1_top");
+      if (top) {
+        openGateBtn.style.top = top;
+      } else {
+        openGateBtn.style.top = "50%";
+      }
+    }
+
+    makeDraggable(openGateBtn);
+    loadButtonPosition();
+
+    // --- login / greeting ---
     function askForName() {
       let name = prompt("Podaj imię:");
       if (name && name.trim()) {
@@ -194,6 +355,7 @@
       mainContent.style.display = 'block';
       loginNoticeBtn.style.display = 'none';
       bottomLogo.style.display = 'block';
+      settingsBtn.style.display = 'block';
     }
 
     function showLoginNotice() {
@@ -207,7 +369,7 @@
     });
 
     openGateBtn.addEventListener('click', () => {
-      if (!userId) return;
+      if (!userId || dragEnabled) return;
       showMessage("Wysyłam polecenie HTTP", 1000);
       sendBlynkRequest();
     });
@@ -221,28 +383,26 @@
     }
 
     function sendBlynkRequest() {
-  console.log("🔓 Użytkownik '" + userId + "' otwiera bramę");
+      console.log("🔓 Użytkownik '" + userId + "' otwiera bramę");
 
-  fetch(`https://fra1.blynk.cloud/external/api/update?token=zAM3zOp4JCYabvYGvtKIz9Gv0My3OIYs&v3=1`)
-    .then(response => response.text())
-    .then(data => {
-      console.log('Brama ON:', data);
+      fetch(`https://fra1.blynk.cloud/external/api/update?token=zAM3zOp4JCYabvYGvtKIz9Gv0My3OIYs&v3=1`)
+        .then(response => response.text())
+        .then(data => {
+          console.log('Brama ON:', data);
 
-      // Dodatkowe polecenie dla użytkownika ADMIN
-      if (userId === "ADMIN") {
-        fetch(`https://fra1.blynk.cloud/external/api/update?token=zAM3zOp4JCYabvYGvtKIz9Gv0My3OIYs&v0=1`)
-          .then(response => response.text())
-          .then(data => console.log('Dodatkowy pin V0 ustawiony:', data));
-      }
+          if (userId === "ADMIN") {
+            fetch(`https://fra1.blynk.cloud/external/api/update?token=zAM3zOp4JCYabvYGvtKIz9Gv0My3OIYs&v0=1`)
+              .then(response => response.text())
+              .then(data => console.log('Dodatkowy pin V0 ustawiony:', data));
+          }
 
-      setTimeout(() => {
-        fetch(`https://fra1.blynk.cloud/external/api/update?token=zAM3zOp4JCYabvYGvtKIz9Gv0My3OIYs&v3=0`)
-          .then(response => response.text())
-          .then(data => console.log('Brama OFF:', data));
-      }, 1000);
-    });
-}
-
+          setTimeout(() => {
+            fetch(`https://fra1.blynk.cloud/external/api/update?token=zAM3zOp4JCYabvYGvtKIz9Gv0My3OIYs&v3=0`)
+              .then(response => response.text())
+              .then(data => console.log('Brama OFF:', data));
+          }, 1000);
+        });
+    }
 
     function logout() {
       localStorage.removeItem("SGS_userId");
@@ -273,7 +433,9 @@
       }
     }
 
-    showLogoThenAskName();
+    // start
+    checkUpdate();
   </script>
 </body>
 </html>
+

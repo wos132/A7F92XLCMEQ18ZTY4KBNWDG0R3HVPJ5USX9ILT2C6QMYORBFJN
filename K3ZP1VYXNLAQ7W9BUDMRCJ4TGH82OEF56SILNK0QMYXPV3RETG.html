@@ -240,7 +240,6 @@
     function checkUpdate() {
       const storedVersion = localStorage.getItem("SGS_version");
       if (storedVersion !== APP_VERSION) {
-        // pokaż ekran aktualizacji
         updateScreen.style.display = "flex";
         mainContent.style.display = "none";
         settingsBtn.style.display = "none";
@@ -264,16 +263,14 @@
           settingsBtn.style.display = "block";
           showLogoThenAskName();
         }
-      }, 1000); // 5s
+      }, 1000);
     });
 
-    // --- ustawienia ---
     settingsBtn.addEventListener("click", () => {
       dragEnabled = !dragEnabled;
       settingsBtn.style.background = dragEnabled ? "rgba(0,128,0,0.7)" : "rgba(0,0,0,0.5)";
     });
 
-    // --- przesuwanie tylko góra/dół ---
     function makeDraggable(el) {
       let offsetY, isDragging = false;
 
@@ -319,7 +316,6 @@
     makeDraggable(openGateBtn);
     loadButtonPosition();
 
-    // --- login / greeting ---
     function askForName() {
       let name = prompt("Podaj imię:");
       if (name && name.trim()) {
@@ -433,12 +429,109 @@
       }
     }
 
-    // start
     checkUpdate();
   </script>
+
+  <!-- === DODANE OSTRZEŻENIE === -->
+  <div id="warningScreen" style="display:none;">
+    <div class="warningBox">
+      <h2>⚠️ Uwaga</h2>
+      <p>
+        Może wystąpić problem podczas wysyłania polecenia.<br>
+        W takim przypadku konieczne będzie ponowne wysłanie żądania<br>
+        (ponowne otworzenie bramy).
+      </p>
+      <button id="understandBtn">Rozumiem</button>
+    </div>
+  </div>
+
+  <div id="mainWarning" style="display:none;">
+    Może wystąpić problem podczas wysyłania polecenia.
+  </div>
+
+  <style>
+    #warningScreen {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.9);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .warningBox {
+      background: rgba(50, 50, 50, 0.8);
+      border-radius: 12px;
+      padding: 30px 20px;
+      max-width: 90%;
+      width: 400px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    }
+
+    #understandBtn {
+      margin-top: 30px;
+      padding: 15px 40px;
+      font-size: 22px;
+      border: none;
+      border-radius: 10px;
+      background: #4CAF50;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    #understandBtn:hover {
+      background: #45a049;
+    }
+
+    #mainWarning {
+      position: fixed;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255, 0, 0, 0.5);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: bold;
+      z-index: 9998;
+      box-shadow: 0 0 10px rgba(0,0,0,0.4);
+      animation: fadeIn 1s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+  </style>
+
+  <script>
+    const SHOW_WARNING = 1; // 1 = pokaż, 0 = nie pokazuj
+    const warningScreen = document.getElementById("warningScreen");
+    const understandBtn = document.getElementById("understandBtn");
+    const mainWarning = document.getElementById("mainWarning");
+
+    if (SHOW_WARNING === 1) {
+      warningScreen.style.display = "flex";
+
+      setTimeout(() => {
+        if (warningScreen.style.display !== "none") {
+          warningScreen.style.display = "none";
+          mainWarning.style.display = "block";
+        }
+      }, 5000);
+    }
+
+    understandBtn.addEventListener("click", () => {
+      warningScreen.style.display = "none";
+      mainWarning.style.display = "block";
+    });
+  </script>
+
 </body>
 </html>
-
-
-
-

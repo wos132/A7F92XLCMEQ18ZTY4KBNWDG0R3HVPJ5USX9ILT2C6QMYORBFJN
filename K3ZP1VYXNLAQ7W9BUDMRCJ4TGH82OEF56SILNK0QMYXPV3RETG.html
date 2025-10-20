@@ -204,9 +204,27 @@
       background-color: rgba(0, 0, 0, 0.4);
       padding: 3px;
     }
+
+    /* --- komunikat ostrzegawczy --- */
+    #warningMsg {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      padding: 12px;
+      background: rgba(255, 0, 0, 0.7);
+      color: white;
+      text-align: center;
+      font-weight: bold;
+      z-index: 200;
+      display: none; /* domyślnie niewidoczny */
+    }
   </style>
 </head>
 <body>
+
+  <!-- komunikat ostrzegawczy -->
+  <div id="warningMsg">Uwaga: może wystąpić problem z wysłaniem polecenia!</div>
 
   <!-- ekran aktualizacji -->
   <div id="updateScreen" style="display:none;">
@@ -248,6 +266,9 @@
   <script>
     // === KONFIG ===
     const APP_VERSION = "SGS 1.5a (Wallpaper)";
+    const SHOW_WARNING = 1; // 0 = ukryte, 1 = widoczne
+    const warningMsg = document.getElementById('warningMsg');
+    if(SHOW_WARNING) warningMsg.style.display = 'block';
 
     function capitalizeName(name) {
       return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
@@ -294,7 +315,7 @@
       progressBar.style.display = "block";
       let progress = 0;
       const interval = setInterval(() => {
-        progress += 20; // zmień tu krok
+        progress += 20;
         progressBarInner.style.width = progress + "%";
         if (progress >= 100) {
           clearInterval(interval);
@@ -303,14 +324,13 @@
           settingsBtn.style.display = "block";
           showLogoThenAskName();
         }
-      }, 1000); // czas między krokami w ms → zmień dla szybszej lub wolniejszej aktualizacji
+      }, 1000);
     });
 
     // --- ustawienia ---
     settingsBtn.addEventListener('click', () => {
       dragEnabled = !dragEnabled;
       settingsBtn.style.background = dragEnabled ? "rgba(0,128,0,0.7)" : "rgba(0,0,0,0.5)";
-      // pokaż panel tła
       bgSettings.style.display = bgSettings.style.display === 'none' ? 'block' : 'none';
     });
 
@@ -333,7 +353,6 @@
       }
     });
 
-    // ładowanie tła z pamięci
     const savedBg = localStorage.getItem('SGS_bg');
     if(savedBg) {
       document.body.style.background = `url('${savedBg}') no-repeat center center fixed`;
@@ -367,9 +386,9 @@
         isDragging = false;
         localStorage.setItem("btn1_top", el.style.top);
         document.removeEventListener("mousemove", onDrag);
-        document.removeEventListener("mouseup", stopDrag);
+        document.removeEventListener("mouseup", onDrag);
         document.removeEventListener("touchmove", onDrag);
-        document.removeEventListener("touchend", stopDrag);
+        document.removeEventListener("touchend", onDrag);
       }
     }
 
@@ -489,4 +508,3 @@
 
 </body>
 </html>
-

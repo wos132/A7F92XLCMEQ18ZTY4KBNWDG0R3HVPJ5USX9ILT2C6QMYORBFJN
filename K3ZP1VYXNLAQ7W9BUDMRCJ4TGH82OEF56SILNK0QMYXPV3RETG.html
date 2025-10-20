@@ -81,6 +81,39 @@
       height: 36px;
     }
 
+    /* --- panel wyboru tła --- */
+    #bgSettings {
+      display:none;
+      position:fixed;
+      top:50px;
+      right:10px;
+      background:rgba(0,0,0,0.7);
+      padding:15px;
+      border-radius:8px;
+      z-index:50;
+      color:white;
+    }
+    #bgSettings button {
+      display:block;
+      margin:5px 0;
+      padding:6px 10px;
+      background:rgba(255,255,255,0.2);
+      border:none;
+      border-radius:4px;
+      color:white;
+      cursor:pointer;
+    }
+    #bgSettings button:hover {
+      background:rgba(255,255,255,0.4);
+    }
+    #bgSettings input {
+      width:100%;
+      padding:5px;
+      border-radius:4px;
+      border:none;
+      margin-top:5px;
+    }
+
     #logo {
       position: absolute;
       top: 50%;
@@ -98,14 +131,13 @@
       color: white;
     }
 
-    h1 {
+    h1,h2 {
       user-select: none;
       cursor: pointer;
       margin-bottom: 30px;
-      font-size: 48px;
     }
 
-    button {
+    button.actionBtn {
       padding: 15px 30px;
       font-size: 18px;
       font-weight: bold;
@@ -121,19 +153,11 @@
       transition: transform 0.1s ease, background-color 0.3s ease;
       display: block;
     }
-
-    button:hover {
+    button.actionBtn:hover {
       background-color: rgba(255, 255, 255, 0.5);
     }
-
-    button:active {
+    button.actionBtn:active {
       transform: scale(0.97);
-    }
-
-    #btn1 {
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
     }
 
     #loginNoticeBtn {
@@ -173,7 +197,6 @@
       z-index: 10;
       display: none;
     }
-
     .logo img {
       height: 80px;
       width: auto;
@@ -196,24 +219,35 @@
   <!-- Przycisk ustawień -->
   <button id="settingsBtn">⚙</button>
 
+  <!-- Panel wyboru tła -->
+  <div id="bgSettings">
+    <h3>Wybierz tło</h3>
+    <button class="bgBtn" data-img="img1.jpg">Tło 1</button>
+    <button class="bgBtn" data-img="img2.jpg">Tło 2</button>
+    <button class="bgBtn" data-img="img3.jpg">Tło 3</button>
+    <hr style="margin:10px 0; border-color:#888;">
+    <input type="text" id="customBgUrl" placeholder="Własny URL tła">
+    <button id="applyCustomBg">Zastosuj</button>
+  </div>
+
   <!-- Logo na start -->
   <img src="ElektronikEle_preview_rev_1.png" id="logo" alt="Logo ElektronikEle" />
 
   <div id="mainContent">
     <h2 id="status">Dzień Dobry <span id="username"></span></h2>
-    <button id="btn1">Otwieranie Bramy</button>
+    <button class="actionBtn" id="btn1">Otwieranie Bramy</button>
   </div>
 
   <button id="loginNoticeBtn">Kliknij, aby podać imię</button>
 
-  <div class="version">Wersja: <span id="appVersion">SGS 1.5a (ERROR)</span></div>
+  <div class="version">Wersja: <span id="appVersion">SGS 1.5a</span></div>
   <div class="logo">
     <img src="ElektronikEle_preview_rev_1.png" alt="Logo">
   </div>
 
   <script>
     // === KONFIG ===
-    const APP_VERSION = "SGS 1.5a (ERROR)"; // <<< zmień tu przy aktualizacji
+    const APP_VERSION = "SGS 1.5a";
 
     function capitalizeName(name) {
       return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
@@ -231,6 +265,12 @@
     const updateBtn = document.getElementById("updateBtn");
     const progressBar = document.getElementById("progressBar");
     const progressBarInner = document.getElementById("progressBarInner");
+
+    // --- Panel tła ---
+    const bgSettings = document.getElementById('bgSettings');
+    const bgButtons = document.querySelectorAll('.bgBtn');
+    const customBgInput = document.getElementById('customBgUrl');
+    const applyCustomBgBtn = document.getElementById('applyCustomBg');
 
     let userId = null;
     let longPressTimer = null;
@@ -254,7 +294,7 @@
       progressBar.style.display = "block";
       let progress = 0;
       const interval = setInterval(() => {
-        progress += 50;
+        progress += 20; // zmień tu krok
         progressBarInner.style.width = progress + "%";
         if (progress >= 100) {
           clearInterval(interval);
@@ -263,13 +303,42 @@
           settingsBtn.style.display = "block";
           showLogoThenAskName();
         }
-      }, 1000);
+      }, 1000); // czas między krokami w ms → zmień dla szybszej lub wolniejszej aktualizacji
     });
 
-    settingsBtn.addEventListener("click", () => {
+    // --- ustawienia ---
+    settingsBtn.addEventListener('click', () => {
       dragEnabled = !dragEnabled;
       settingsBtn.style.background = dragEnabled ? "rgba(0,128,0,0.7)" : "rgba(0,0,0,0.5)";
+      // pokaż panel tła
+      bgSettings.style.display = bgSettings.style.display === 'none' ? 'block' : 'none';
     });
+
+    // wybór tła
+    bgButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const img = btn.getAttribute('data-img');
+        document.body.style.background = `url('${img}') no-repeat center center fixed`;
+        document.body.style.backgroundSize = 'cover';
+        localStorage.setItem('SGS_bg', img);
+      });
+    });
+
+    applyCustomBgBtn.addEventListener('click', () => {
+      const url = customBgInput.value.trim();
+      if(url) {
+        document.body.style.background = `url('${url}') no-repeat center center fixed`;
+        document.body.style.backgroundSize = 'cover';
+        localStorage.setItem('SGS_bg', url);
+      }
+    });
+
+    // ładowanie tła z pamięci
+    const savedBg = localStorage.getItem('SGS_bg');
+    if(savedBg) {
+      document.body.style.background = `url('${savedBg}') no-repeat center center fixed`;
+      document.body.style.backgroundSize = 'cover';
+    }
 
     function makeDraggable(el) {
       let offsetY, isDragging = false;
@@ -360,9 +429,7 @@
       bottomLogo.style.display = 'none';
     }
 
-    loginNoticeBtn.addEventListener('click', () => {
-      askForName();
-    });
+    loginNoticeBtn.addEventListener('click', () => askForName());
 
     openGateBtn.addEventListener('click', () => {
       if (!userId || dragEnabled) return;
@@ -379,23 +446,11 @@
     }
 
     function sendBlynkRequest() {
-      console.log("🔓 Użytkownik '" + userId + "' otwiera bramę");
-
       fetch(`https://fra1.blynk.cloud/external/api/update?token=zAM3zOp4JCYabvYGvtKIz9Gv0My3OIYs&v3=1`)
         .then(response => response.text())
         .then(data => {
-          console.log('Brama ON:', data);
-
-          if (userId === "ADMIN") {
-            fetch(`https://fra1.blynk.cloud/external/api/update?token=zAM3zOp4JCYabvYGvtKIz9Gv0My3OIYs&v0=1`)
-              .then(response => response.text())
-              .then(data => console.log('Dodatkowy pin V0 ustawiony:', data));
-          }
-
           setTimeout(() => {
-            fetch(`https://fra1.blynk.cloud/external/api/update?token=zAM3zOp4JCYabvYGvtKIz9Gv0My3OIYs&v3=0`)
-              .then(response => response.text())
-              .then(data => console.log('Brama OFF:', data));
+            fetch(`https://fra1.blynk.cloud/external/api/update?token=zAM3zOp4JCYabvYGvtKIz9Gv0My3OIYs&v3=0`);
           }, 1000);
         });
     }
@@ -432,108 +487,5 @@
     checkUpdate();
   </script>
 
-  <!-- === DODANE OSTRZEŻENIE === -->
-  <div id="warningScreen" style="display:none;">
-    <div class="warningBox">
-      <h2>⚠️ Uwaga</h2>
-      <p>
-        Może wystąpić problem podczas wysyłania polecenia.<br>
-        W takim przypadku konieczne będzie ponowne wysłanie żądania<br>
-        (ponowne otworzenie bramy).
-      </p>
-      <button id="understandBtn">Rozumiem</button>
-    </div>
-  </div>
-
-  <div id="mainWarning" style="display:none;">
-    Może wystąpić problem podczas wysyłania polecenia.
-  </div>
-
-  <style>
-    #warningScreen {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.9);
-      color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
-      text-align: center;
-      padding: 20px;
-    }
-
-    .warningBox {
-      background: rgba(50, 50, 50, 0.8);
-      border-radius: 12px;
-      padding: 30px 20px;
-      max-width: 90%;
-      width: 400px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.5);
-    }
-
-    #understandBtn {
-      margin-top: 30px;
-      padding: 15px 40px;
-      font-size: 22px;
-      border: none;
-      border-radius: 10px;
-      background: #4CAF50;
-      color: white;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
-
-    #understandBtn:hover {
-      background: #45a049;
-    }
-
-    #mainWarning {
-      position: fixed;
-      bottom: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(255, 0, 0, 0.5);
-      color: white;
-      padding: 10px 20px;
-      border-radius: 8px;
-      font-weight: bold;
-      z-index: 9998;
-      box-shadow: 0 0 10px rgba(0,0,0,0.4);
-      animation: fadeIn 1s ease;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-  </style>
-
-  <script>
-    const SHOW_WARNING = 1; // 1 = pokaż, 0 = nie pokazuj
-    const warningScreen = document.getElementById("warningScreen");
-    const understandBtn = document.getElementById("understandBtn");
-    const mainWarning = document.getElementById("mainWarning");
-
-    if (SHOW_WARNING === 1) {
-      warningScreen.style.display = "flex";
-
-      setTimeout(() => {
-        if (warningScreen.style.display !== "none") {
-          warningScreen.style.display = "none";
-          mainWarning.style.display = "block";
-        }
-      }, 5000);
-    }
-
-    understandBtn.addEventListener("click", () => {
-      warningScreen.style.display = "none";
-      mainWarning.style.display = "block";
-    });
-  </script>
-
 </body>
 </html>
-
-

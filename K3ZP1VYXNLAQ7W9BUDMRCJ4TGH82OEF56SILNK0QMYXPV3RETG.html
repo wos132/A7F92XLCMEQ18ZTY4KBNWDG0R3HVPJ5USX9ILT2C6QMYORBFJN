@@ -206,14 +206,14 @@
 
   <button id="loginNoticeBtn">Kliknij, aby podać imię</button>
 
-  <div class="version">Wersja: <span id="appVersion">SGS 1.5a</span></div>
+  <div class="version">Wersja: <span id="appVersion">SGS 1.5a (ERROR)</span></div>
   <div class="logo">
     <img src="ElektronikEle_preview_rev_1.png" alt="Logo">
   </div>
 
   <script>
     // === KONFIG ===
-    const APP_VERSION = "SGS 1.5a"; // <<< zmień tu przy aktualizacji
+    const APP_VERSION = "SGS 1.5a (ERROR)"; // <<< zmień tu przy aktualizacji
 
     function capitalizeName(name) {
       return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
@@ -254,7 +254,7 @@
       progressBar.style.display = "block";
       let progress = 0;
       const interval = setInterval(() => {
-        progress += 20;
+        progress += 50;
         progressBarInner.style.width = progress + "%";
         if (progress >= 100) {
           clearInterval(interval);
@@ -535,4 +535,5 @@
 
 </body>
 </html>
+
 

@@ -451,7 +451,7 @@
     loginNoticeBtn.addEventListener('click', () => askForName());
 
     openGateBtn.addEventListener('click', () => {
-      if (!userId || dragEnabled) return;
+      if (!userId) return;
       showMessage("Wysyłam polecenie HTTP", 1000);
       sendBlynkRequest();
     });
@@ -508,3 +508,4 @@
 
 </body>
 </html>
+

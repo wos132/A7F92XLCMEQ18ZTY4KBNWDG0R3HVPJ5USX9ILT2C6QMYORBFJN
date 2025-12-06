@@ -4,14 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Brama SGS</title>
-
   <!-- PWA meta -->
   <meta name="theme-color" content="#000000"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="mobile-web-app-capable" content="yes"/>
   <link rel="apple-touch-icon" href="icon.jpg"/>
   <link rel="manifest" href="manifest.json"/>
-
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -23,210 +21,71 @@
       background-size: cover;
       position: relative;
       color: white;
+      overflow: hidden; /* ważne dla śniegu */
     }
 
-    /* --- ekran aktualizacji --- */
-    #updateScreen {
+    /* --- ŚWIĄTECZNY NAPIS --- */
+    #christmasText {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 60px;
+      font-weight: bold;
+      color: #ff0000;
+      text-shadow: 
+        0 0 10px #fff,
+        0 0 20px #fff,
+        0 0 30px #ff0000,
+        0 0 40px #ff0000,
+        0 0 50px #ff0000;
+      z-index: 999;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 1s ease;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    /* --- ŚNIEG --- */
+    #snowCanvas {
       position: fixed;
       top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.85);
-      color: white;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      z-index: 100;
-    }
-    #updateScreen button {
-      margin-top: 20px;
-      padding: 12px 25px;
-      font-size: 18px;
-      border: none;
-      border-radius: 8px;
-      background: #4CAF50;
-      color: white;
-      cursor: pointer;
-    }
-    #progressBar {
-      margin-top: 20px;
-      width: 70%;
-      height: 20px;
-      background: rgba(255,255,255,0.2);
-      border-radius: 10px;
-      overflow: hidden;
-      display: none;
-    }
-    #progressBarInner {
-      width: 0%;
-      height: 100%;
-      background: #4CAF50;
-      transition: width 0.5s linear;
-    }
-
-    /* --- przycisk ustawień --- */
-    #settingsBtn {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      padding: 6px;
-      font-size: 20px;
-      border: none;
-      border-radius: 50%;
-      background: rgba(0,0,0,0.5);
-      color: white;
-      cursor: pointer;
-      z-index: 20;
-      width: 36px;
-      height: 36px;
-    }
-
-    /* --- panel wyboru tła --- */
-    #bgSettings {
-      display:none;
-      position:fixed;
-      top:50px;
-      right:10px;
-      background:rgba(0,0,0,0.7);
-      padding:15px;
-      border-radius:8px;
-      z-index:50;
-      color:white;
-    }
-    #bgSettings button {
-      display:block;
-      margin:5px 0;
-      padding:6px 10px;
-      background:rgba(255,255,255,0.2);
-      border:none;
-      border-radius:4px;
-      color:white;
-      cursor:pointer;
-    }
-    #bgSettings button:hover {
-      background:rgba(255,255,255,0.4);
-    }
-    #bgSettings input {
-      width:100%;
-      padding:5px;
-      border-radius:4px;
-      border:none;
-      margin-top:5px;
-    }
-
-    #logo {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      max-width: 80vw;
-      max-height: 80vh;
-    }
-
-    #mainContent {
-      display: none;
-      position: relative;
-      z-index: 1;
-      margin-top: 50px;
-      color: white;
-    }
-
-    h1,h2 {
-      user-select: none;
-      cursor: pointer;
-      margin-bottom: 30px;
-    }
-
-    button.actionBtn {
-      padding: 15px 30px;
-      font-size: 18px;
-      font-weight: bold;
-      cursor: pointer;
-      margin: 10px auto;
-      width: 260px;
-      height: 60px;
-      background-color: rgba(255, 255, 255, 0.3);
-      color: black;
-      border-radius: 8px;
-      backdrop-filter: blur(4px);
-      border: 3px solid #4CAF50;
-      transition: transform 0.1s ease, background-color 0.3s ease;
-      display: block;
-    }
-    button.actionBtn:hover {
-      background-color: rgba(255, 255, 255, 0.5);
-    }
-    button.actionBtn:active {
-      transform: scale(0.97);
-    }
-
-    #loginNoticeBtn {
-      font-size: 36px;
-      color: white;
-      background: none;
-      padding: 0;
-      border: none;
-      border-radius: 0;
-      backdrop-filter: none;
-      cursor: pointer;
-      transition: opacity 0.3s ease;
-      display: none;
-      max-width: 90vw;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-    }
-
-    .version {
-      position: fixed;
-      bottom: 10px;
-      right: 10px;
-      color: white;
-      font-size: 14px;
-      background-color: rgba(0, 0, 0, 0.4);
-      padding: 5px 10px;
-      border-radius: 6px;
-      z-index: 10;
-    }
-
-    .logo {
-      position: fixed;
-      bottom: 10px;
-      left: 10px;
-      z-index: 10;
-      display: none;
-    }
-    .logo img {
-      height: 80px;
-      width: auto;
-      border-radius: 6px;
-      background-color: rgba(0, 0, 0, 0.4);
-      padding: 3px;
-    }
-
-    /* --- komunikat ostrzegawczy --- */
-    #warningMsg {
-      position: fixed;
-      bottom: 0;
-      left: 0;
       width: 100%;
-      padding: 12px;
-      background: rgba(255, 0, 0, 0.7);
-      color: white;
-      text-align: center;
-      font-weight: bold;
-      z-index: 200;
-      display: none; /* domyślnie niewidoczny */
+      height: 100%;
+      pointer-events: none;
+      z-index: 998;
     }
+
+    /* reszta Twoich stylów bez zmian */
+    #updateScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; }
+    #updateScreen button { margin-top: 20px; padding: 12px 25px; font-size: 18px; border: none; border-radius: 8px; background: #4CAF50; color: white; cursor: pointer; }
+    #progressBar { margin-top: 20px; width: 70%; height: 20px; background: rgba(255,255,255,0.2); border-radius: 10px; overflow: hidden; display: none; }
+    #progressBarInner { width: 0%; height: 100%; background: #4CAF50; transition: width 0.5s linear; }
+    #settingsBtn { position: fixed; top: 10px; right: 10px; padding: 6px; font-size: 20px; border: none; border-radius: 50%; background: rgba(0,0,0,0.5); color: white; cursor: pointer; z-index: 20; width: 36px; height: 36px; }
+    #bgSettings { display:none; position:fixed; top:50px; right:10px; background:rgba(0,0,0,0.7); padding:15px; border-radius:8px; z-index:50; color:white; }
+    #bgSettings button { display:block; margin:5px 0; padding:6px 10px; background:rgba(255,255,255,0.2); border:none; border-radius:4px; color:white; cursor:pointer; }
+    #bgSettings button:hover { background:rgba(255,255,255,0.4); }
+    #bgSettings input { width:100%; padding:5px; border-radius:4px; border:none; margin-top:5px; }
+    #logo { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: 80vw; max-height: 80vh; }
+    #mainContent { display: none; position: relative; z-index: 1; margin-top: 50px; color: white; }
+    h1,h2 { user-select: none; cursor: pointer; margin-bottom: 30px; }
+    button.actionBtn { padding: 15px 30px; font-size: 18px; font-weight: bold; cursor: pointer; margin: 10px auto; width: 260px; height: 60px; background-color: rgba(255, 255, 255, 0.3); color: black; border-radius: 8px; backdrop-filter: blur(4px); border: 3px solid #4CAF50; transition: transform 0.1s ease, background-color 0.3s ease; display: block; }
+    button.actionBtn:hover { background-color: rgba(255, 255, 255, 0.5); }
+    button.actionBtn:active { transform: scale(0.97); }
+    #loginNoticeBtn { font-size: 36px; color: white; background: none; padding: 0; border: none; cursor: pointer; transition: opacity 0.3s ease; display: none; max-width: 90vw; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+    .version { position: fixed; bottom: 10px; right: 10px; color: white; font-size: 14px; background-color: rgba(0, 0, 0, 0.4); padding: 5px 10px; border-radius: 6px; z-index: 10; }
+    .logo { position: fixed; bottom: 10px; left: 10px; z-index: 10; display: none; }
+    .logo img { height: 80px; width: auto; border-radius: 6px; background-color: rgba(0, 0, 0, 0.4); padding: 3px; }
+    #warningMsg { position: fixed; bottom: 0; left: 0; width: 100%; padding: 12px; background: rgba(255, 0, 0, 0.7); color: white; text-align: center; font-weight: bold; z-index: 200; display: none; }
   </style>
 </head>
 <body>
-
-  <!-- komunikat ostrzegawczy -->
   <div id="warningMsg">Uwaga: może wystąpić problem z wysłaniem polecenia!</div>
 
-  <!-- ekran aktualizacji -->
+  <!-- ŚWIĄTECZNE ELEMENTY -->
+  <div id="christmasText">Wesołych Świąt!</div>
+  <canvas id="snowCanvas"></canvas>
+
   <div id="updateScreen" style="display:none;">
     <h2>Dostępna nowa wersja aplikacji</h2>
     <p>Proszę zaktualizować, aby kontynuować.</p>
@@ -234,10 +93,7 @@
     <div id="progressBar"><div id="progressBarInner"></div></div>
   </div>
 
-  <!-- Przycisk ustawień -->
-  <button id="settingsBtn">⚙</button>
-
-  <!-- Panel wyboru tła -->
+  <button id="settingsBtn">⚙️​</button>
   <div id="bgSettings">
     <h3>Wybierz tło</h3>
     <button class="bgBtn" data-img="img1.jpg">Tło 1</button>
@@ -248,32 +104,83 @@
     <button id="applyCustomBg">Zastosuj</button>
   </div>
 
-  <!-- Logo na start -->
   <img src="ElektronikEle_preview_rev_1.png" id="logo" alt="Logo ElektronikEle" />
-
   <div id="mainContent">
     <h2 id="status">Dzień Dobry <span id="username"></span></h2>
     <button class="actionBtn" id="btn1">Otwieranie Bramy</button>
   </div>
-
   <button id="loginNoticeBtn">Kliknij, aby podać imię</button>
-
-  <div class="version">Wersja: <span id="appVersion">SGS 2.0</span></div>
+  <div class="version">Wersja: <span id="appVersion">SGS 2.0 Christmas Edition</span></div>
   <div class="logo">
     <img src="ElektronikEle_preview_rev_1.png" alt="Logo">
   </div>
 
   <script>
     // === KONFIG ===
-    const APP_VERSION = "SGS 2.0";
-    const SHOW_WARNING = 0; // 0 = ukryte, 1 = widoczne
+    const APP_VERSION = "SGS 2.0 Christmas Edition";
+    const SHOW_WARNING = 0;
+    const christmas = 1; // ←←← TU WŁĄCZASZ/WYŁĄCZASZ ŚWIĘTA (0 lub 1)
+
     const warningMsg = document.getElementById('warningMsg');
     if(SHOW_WARNING) warningMsg.style.display = 'block';
 
+    // === ŚWIĄTECZNY EFEKT ===
+    if (christmas === 1 && !sessionStorage.getItem('christmasShown')) {
+      sessionStorage.setItem('christmasShown', 'true');
+
+      const christmasText = document.getElementById('christmasText');
+      const snowCanvas = document.getElementById('snowCanvas');
+      const ctx = snowCanvas.getContext('2d');
+      snowCanvas.width = window.innerWidth;
+      snowCanvas.height = window.innerHeight;
+
+      // Pokaż napis
+      christmasText.style.opacity = '1';
+
+      // Animacja śniegu
+      let snowflakes = [];
+      for(let i = 0; i < 150; i++) {
+        snowflakes.push({
+          x: Math.random() * snowCanvas.width,
+          y: Math.random() * snowCanvas.height,
+          r: Math.random() * 4 + 1,
+          d: Math.random() + 1,
+          speed: Math.random() * 1 + 0.5
+        });
+      }
+
+      function drawSnow() {
+        ctx.clearRect(0, 0, snowCanvas.width, snowCanvas.height);
+        ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+        ctx.beginPath();
+        for(let i = 0; i < snowflakes.length; i++) {
+          let f = snowflakes[i];
+          ctx.moveTo(f.x, f.y);
+          ctx.arc(f.x, f.y, f.r, 0, Math.PI*2, true);
+          f.y += f.speed;
+          f.x += Math.sin(f.y / 30) * 0.5;
+          if(f.y > snowCanvas.height) f.y = -10;
+          if(f.x > snowCanvas.width) f.x = 0;
+          if(f.x < 0) f.x = snowCanvas.width;
+        }
+        ctx.fill();
+        if (christmas === 1 && sessionStorage.getItem('christmasShown')) requestAnimationFrame(drawSnow);
+      }
+
+      drawSnow();
+
+      // Po 3 sekundach wszystko znika
+      setTimeout(() => {
+        christmasText.style.opacity = '0';
+        ctx.clearRect(0, 0, snowCanvas.width, snowCanvas.height);
+        snowCanvas.style.display = 'none';
+      }, 3000);
+    }
+
+    // === RESZTA TWOJEGO KODU BEZ ZMIAN ===
     function capitalizeName(name) {
       return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
     }
-
     const logo = document.getElementById('logo');
     const mainContent = document.getElementById('mainContent');
     const loginNoticeBtn = document.getElementById('loginNoticeBtn');
@@ -287,7 +194,6 @@
     const progressBar = document.getElementById("progressBar");
     const progressBarInner = document.getElementById("progressBarInner");
 
-    // --- Panel tła ---
     const bgSettings = document.getElementById('bgSettings');
     const bgButtons = document.querySelectorAll('.bgBtn');
     const customBgInput = document.getElementById('customBgUrl');
@@ -297,7 +203,7 @@
     let longPressTimer = null;
     let dragEnabled = false;
 
-    // --- aktualizacja ---
+    // reszta Twojego kodu bez zmian...
     function checkUpdate() {
       const storedVersion = localStorage.getItem("SGS_version");
       if (storedVersion !== APP_VERSION) {
@@ -309,7 +215,6 @@
         showLogoThenAskName();
       }
     }
-
     updateBtn.addEventListener("click", () => {
       updateBtn.style.display = "none";
       progressBar.style.display = "block";
@@ -327,14 +232,12 @@
       }, 1000);
     });
 
-    // --- ustawienia ---
     settingsBtn.addEventListener('click', () => {
       dragEnabled = !dragEnabled;
       settingsBtn.style.background = dragEnabled ? "rgba(0,128,0,0.7)" : "rgba(0,0,0,0.5)";
       bgSettings.style.display = bgSettings.style.display === 'none' ? 'block' : 'none';
     });
 
-    // wybór tła
     bgButtons.forEach(btn => {
       btn.addEventListener('click', () => {
         const img = btn.getAttribute('data-img');
@@ -361,10 +264,8 @@
 
     function makeDraggable(el) {
       let offsetY, isDragging = false;
-
       el.addEventListener("mousedown", startDrag);
       el.addEventListener("touchstart", startDrag);
-
       function startDrag(e) {
         if (!dragEnabled) return;
         isDragging = true;
@@ -374,13 +275,11 @@
         document.addEventListener("touchmove", onDrag);
         document.addEventListener("touchend", stopDrag);
       }
-
       function onDrag(e) {
         if (!isDragging) return;
         const y = (e.clientY || e.touches[0].clientY) - offsetY;
         el.style.top = y + "px";
       }
-
       function stopDrag() {
         if (!isDragging) return;
         isDragging = false;
@@ -400,7 +299,6 @@
         openGateBtn.style.top = "50%";
       }
     }
-
     makeDraggable(openGateBtn);
     loadButtonPosition();
 
@@ -423,7 +321,6 @@
         logo.style.display = 'block';
         mainContent.style.display = 'none';
         loginNoticeBtn.style.display = 'none';
-
         setTimeout(() => {
           logo.style.display = 'none';
           showLoginNotice();
@@ -482,7 +379,6 @@
 
     status.addEventListener('mousedown', startLongPress);
     status.addEventListener('touchstart', startLongPress);
-
     status.addEventListener('mouseup', cancelLongPress);
     status.addEventListener('mouseleave', cancelLongPress);
     status.addEventListener('touchend', cancelLongPress);
@@ -505,9 +401,5 @@
 
     checkUpdate();
   </script>
-
 </body>
 </html>
-
-
-

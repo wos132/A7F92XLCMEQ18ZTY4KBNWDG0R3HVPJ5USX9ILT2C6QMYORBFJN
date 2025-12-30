@@ -1,406 +1,530 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Brama SGS</title>
-  <!-- PWA meta -->
-  <meta name="theme-color" content="#000000"/>
-  <meta name="apple-mobile-web-app-capable" content="yes"/>
-  <meta name="mobile-web-app-capable" content="yes"/>
-  <link rel="apple-touch-icon" href="icon.jpg"/>
-  <link rel="manifest" href="manifest.json"/>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 0;
-      margin: 0;
-      height: 100vh;
-      background: url('img1.jpg') no-repeat center center fixed;
-      background-size: cover;
-      position: relative;
-      color: white;
-      overflow: hidden; /* ważne dla śniegu */
-    }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Brama SGS</title>
+    <!-- PWA meta -->
+    <meta name="theme-color" content="#000000"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="mobile-web-app-capable" content="yes"/>
+    <link rel="apple-touch-icon" href="icon.jpg"/>
+    <link rel="manifest" href="manifest.json"/>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 0;
+            margin: 0;
+            height: 100vh;
+            background: url('img1.jpg') no-repeat center center fixed;
+            background-size: cover;
+            position: relative;
+            color: white;
+            overflow: hidden; /* ważne dla śniegu */
+        }
 
-    /* --- ŚWIĄTECZNY NAPIS --- */
-    #christmasText {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 60px;
-      font-weight: bold;
-      color: #ff0000;
-      text-shadow: 
-        0 0 10px #fff,
-        0 0 20px #fff,
-        0 0 30px #ff0000,
-        0 0 40px #ff0000,
-        0 0 50px #ff0000;
-      z-index: 999;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 1s ease;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
+        /* --- ŚWIĄTECZNY NAPIS --- */
+        #christmasText {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 60px;
+            font-weight: bold;
+            color: #ff0000;
+            text-shadow: 
+                0 0 10px #fff,
+                0 0 20px #fff,
+                0 0 30px #ff0000,
+                0 0 40px #ff0000,
+                0 0 50px #ff0000;
+            z-index: 999;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 1s ease;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
-    /* --- ŚNIEG --- */
-    #snowCanvas {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 998;
-    }
+        /* --- SYLWESTROWY NAPIS --- */
+        #newYearText {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 60px;
+            font-weight: bold;
+            color: #FFD700;
+            text-shadow: 
+                0 0 20px #fff,
+                0 0 40px #FF8C00,
+                0 0 60px #FF4500;
+            z-index: 999;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 1s ease;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
-    /* reszta Twoich stylów bez zmian */
-    #updateScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; }
-    #updateScreen button { margin-top: 20px; padding: 12px 25px; font-size: 18px; border: none; border-radius: 8px; background: #4CAF50; color: white; cursor: pointer; }
-    #progressBar { margin-top: 20px; width: 70%; height: 20px; background: rgba(255,255,255,0.2); border-radius: 10px; overflow: hidden; display: none; }
-    #progressBarInner { width: 0%; height: 100%; background: #4CAF50; transition: width 0.5s linear; }
-    #settingsBtn { position: fixed; top: 10px; right: 10px; padding: 6px; font-size: 20px; border: none; border-radius: 50%; background: rgba(0,0,0,0.5); color: white; cursor: pointer; z-index: 20; width: 36px; height: 36px; }
-    #bgSettings { display:none; position:fixed; top:50px; right:10px; background:rgba(0,0,0,0.7); padding:15px; border-radius:8px; z-index:50; color:white; }
-    #bgSettings button { display:block; margin:5px 0; padding:6px 10px; background:rgba(255,255,255,0.2); border:none; border-radius:4px; color:white; cursor:pointer; }
-    #bgSettings button:hover { background:rgba(255,255,255,0.4); }
-    #bgSettings input { width:100%; padding:5px; border-radius:4px; border:none; margin-top:5px; }
-    #logo { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: 80vw; max-height: 80vh; }
-    #mainContent { display: none; position: relative; z-index: 1; margin-top: 50px; color: white; }
-    h1,h2 { user-select: none; cursor: pointer; margin-bottom: 30px; }
-    button.actionBtn { padding: 15px 30px; font-size: 18px; font-weight: bold; cursor: pointer; margin: 10px auto; width: 260px; height: 60px; background-color: rgba(255, 255, 255, 0.3); color: black; border-radius: 8px; backdrop-filter: blur(4px); border: 3px solid #4CAF50; transition: transform 0.1s ease, background-color 0.3s ease; display: block; }
-    button.actionBtn:hover { background-color: rgba(255, 255, 255, 0.5); }
-    button.actionBtn:active { transform: scale(0.97); }
-    #loginNoticeBtn { font-size: 36px; color: white; background: none; padding: 0; border: none; cursor: pointer; transition: opacity 0.3s ease; display: none; max-width: 90vw; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
-    .version { position: fixed; bottom: 10px; right: 10px; color: white; font-size: 14px; background-color: rgba(0, 0, 0, 0.4); padding: 5px 10px; border-radius: 6px; z-index: 10; }
-    .logo { position: fixed; bottom: 10px; left: 10px; z-index: 10; display: none; }
-    .logo img { height: 80px; width: auto; border-radius: 6px; background-color: rgba(0, 0, 0, 0.4); padding: 3px; }
-    #warningMsg { position: fixed; bottom: 0; left: 0; width: 100%; padding: 12px; background: rgba(255, 0, 0, 0.7); color: white; text-align: center; font-weight: bold; z-index: 200; display: none; }
-  </style>
+        /* --- ŚNIEG --- */
+        #snowCanvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 998;
+        }
+
+        /* --- FAJERWERKI --- */
+        #fireworksCanvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 998;
+        }
+
+        /* reszta Twoich stylów bez zmian */
+        #updateScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); color: white; display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 100; }
+        #progressBar { margin-top: 30px; width: 70%; height: 20px; background: rgba(255,255,255,0.2); border-radius: 10px; overflow: hidden; }
+        #progressBarInner { width: 0%; height: 100%; background: #4CAF50; transition: width 0.3s linear; }
+        #settingsBtn { position: fixed; top: 10px; right: 10px; padding: 6px; font-size: 20px; border: none; border-radius: 50%; background: rgba(0,0,0,0.5); color: white; cursor: pointer; z-index: 20; width: 36px; height: 36px; }
+        #bgSettings { display:none; position:fixed; top:50px; right:10px; background:rgba(0,0,0,0.7); padding:15px; border-radius:8px; z-index:50; color:white; }
+        #bgSettings button { display:block; margin:5px 0; padding:6px 10px; background:rgba(255,255,255,0.2); border:none; border-radius:4px; color:white; cursor:pointer; }
+        #bgSettings button:hover { background:rgba(255,255,255,0.4); }
+        #bgSettings input { width:100%; padding:5px; border-radius:4px; border:none; margin-top:5px; }
+        #logo { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: 80vw; max-height: 80vh; }
+        #mainContent { display: none; position: relative; z-index: 1; margin-top: 50px; color: white; }
+        h1,h2 { user-select: none; cursor: pointer; margin-bottom: 30px; }
+        button.actionBtn { padding: 15px 30px; font-size: 18px; font-weight: bold; cursor: pointer; margin: 10px auto; width: 260px; height: 60px; background-color: rgba(255, 255, 255, 0.3); color: black; border-radius: 8px; backdrop-filter: blur(4px); border: 3px solid #4CAF50; transition: transform 0.1s ease, background-color 0.3s ease; display: block; }
+        button.actionBtn:hover { background-color: rgba(255, 255, 255, 0.5); }
+        button.actionBtn:active { transform: scale(0.97); }
+        #loginNoticeBtn { font-size: 36px; color: white; background: none; padding: 0; border: none; cursor: pointer; transition: opacity 0.3s ease; display: none; max-width: 90vw; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        .version { position: fixed; bottom: 10px; right: 10px; color: white; font-size: 14px; background-color: rgba(0, 0, 0, 0.4); padding: 5px 10px; border-radius: 6px; z-index: 10; }
+        .logo { position: fixed; bottom: 10px; left: 10px; z-index: 10; display: none; }
+        .logo img { height: 80px; width: auto; border-radius: 6px; background-color: rgba(0, 0, 0, 0.4); padding: 3px; }
+        #warningMsg { position: fixed; bottom: 0; left: 0; width: 100%; padding: 12px; background: rgba(255, 0, 0, 0.7); color: white; text-align: center; font-weight: bold; z-index: 200; display: none; }
+    </style>
 </head>
 <body>
-  <div id="warningMsg">Uwaga: może wystąpić problem z wysłaniem polecenia!</div>
+    <div id="warningMsg">Uwaga: może wystąpić problem z wysłaniem polecenia!</div>
 
-  <!-- ŚWIĄTECZNE ELEMENTY -->
-  <div id="christmasText">Wesołych Świąt!</div>
-  <canvas id="snowCanvas"></canvas>
+    <!-- ŚWIĄTECZNE ELEMENTY -->
+    <div id="christmasText">Wesołych Świąt!</div>
+    <canvas id="snowCanvas"></canvas>
 
-  <div id="updateScreen" style="display:none;">
-    <h2>Dostępna nowa wersja aplikacji</h2>
-    <p>Proszę zaktualizować, aby kontynuować.</p>
-    <button id="updateBtn">Aktualizuj</button>
-    <div id="progressBar"><div id="progressBarInner"></div></div>
-  </div>
+    <!-- SYLWESTROWE ELEMENTY -->
+    <div id="newYearText"></div>
+    <canvas id="fireworksCanvas"></canvas>
 
-  <button id="settingsBtn">⚙️​</button>
-  <div id="bgSettings">
-    <h3>Wybierz tło</h3>
-    <button class="bgBtn" data-img="img1.jpg">Tło 1</button>
-    <button class="bgBtn" data-img="img2.jpg">Tło 2</button>
-    <button class="bgBtn" data-img="img3.jpg">Tło 3</button>
-    <hr style="margin:10px 0; border-color:#888;">
-    <input type="text" id="customBgUrl" placeholder="Własny URL tła">
-    <button id="applyCustomBg">Zastosuj</button>
-  </div>
+    <!-- Ekran aktualizacji - bez przycisku -->
+    <div id="updateScreen">
+        <h2>Dostępna nowa wersja aplikacji</h2>
+        <p>Trwa aktualizacja...</p>
+        <div id="progressBar"><div id="progressBarInner"></div></div>
+    </div>
 
-  <img src="ElektronikEle_preview_rev_1.png" id="logo" alt="Logo ElektronikEle" />
-  <div id="mainContent">
-    <h2 id="status">Dzień Dobry <span id="username"></span></h2>
-    <button class="actionBtn" id="btn1">Otwieranie Bramy</button>
-  </div>
-  <button id="loginNoticeBtn">Kliknij, aby podać imię</button>
-  <div class="version">Wersja: <span id="appVersion">SGS 2.0 Christmas Edition</span></div>
-  <div class="logo">
-    <img src="ElektronikEle_preview_rev_1.png" alt="Logo">
-  </div>
+    <button id="settingsBtn">⚙️</button>
+    <div id="bgSettings">
+        <h3>Wybierz tło</h3>
+        <button class="bgBtn" data-img="img1.jpg">Tło 1</button>
+        <button class="bgBtn" data-img="img2.jpg">Tło 2</button>
+        <button class="bgBtn" data-img="img3.jpg">Tło 3</button>
+        <hr style="margin:10px 0; border-color:#888;">
+        <input type="text" id="customBgUrl" placeholder="Własny URL tła">
+        <button id="applyCustomBg">Zastosuj</button>
+    </div>
 
-  <script>
-    // === KONFIG ===
-    const APP_VERSION = "SGS 2.0 Christmas Edition";
-    const SHOW_WARNING = 0;
-    const christmas = 0; // ←←← TU WŁĄCZASZ/WYŁĄCZASZ ŚWIĘTA (0 lub 1)
+    <img src="ElektronikEle_preview_rev_1.png" id="logo" alt="Logo ElektronikEle" />
+    <div id="mainContent">
+        <h2 id="status">Dzień Dobry <span id="username"></span></h2>
+        <button class="actionBtn" id="btn1">Otwieranie Bramy</button>
+    </div>
+    <button id="loginNoticeBtn">Kliknij, aby podać imię</button>
+    <div class="version">Wersja: <span id="appVersion">SGS 2.0</span></div>
+    <div class="logo">
+        <img src="ElektronikEle_preview_rev_1.png" alt="Logo">
+    </div>
 
-    const warningMsg = document.getElementById('warningMsg');
-    if(SHOW_WARNING) warningMsg.style.display = 'block';
+    <script>
+        // === AUTOMATYCZNE WYKRYWANIE EDYCJI SPECJALNEJ ===
+        const today = new Date();
+        const month = today.getMonth() + 1;
+        const day = today.getDate();
 
-    // === ŚWIĄTECZNY EFEKT ===
-    if (christmas === 1 && !sessionStorage.getItem('christmasShown')) {
-      sessionStorage.setItem('christmasShown', 'true');
+        let edition = "";
+        let showChristmasEffect = false;
+        let showNewYearEffect = false;
+        let newYearMessage = "";
 
-      const christmasText = document.getElementById('christmasText');
-      const snowCanvas = document.getElementById('snowCanvas');
-      const ctx = snowCanvas.getContext('2d');
-      snowCanvas.width = window.innerWidth;
-      snowCanvas.height = window.innerHeight;
-
-      // Pokaż napis
-      christmasText.style.opacity = '1';
-
-      // Animacja śniegu
-      let snowflakes = [];
-      for(let i = 0; i < 150; i++) {
-        snowflakes.push({
-          x: Math.random() * snowCanvas.width,
-          y: Math.random() * snowCanvas.height,
-          r: Math.random() * 4 + 1,
-          d: Math.random() + 1,
-          speed: Math.random() * 1 + 0.5
-        });
-      }
-
-      function drawSnow() {
-        ctx.clearRect(0, 0, snowCanvas.width, snowCanvas.height);
-        ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
-        ctx.beginPath();
-        for(let i = 0; i < snowflakes.length; i++) {
-          let f = snowflakes[i];
-          ctx.moveTo(f.x, f.y);
-          ctx.arc(f.x, f.y, f.r, 0, Math.PI*2, true);
-          f.y += f.speed;
-          f.x += Math.sin(f.y / 30) * 0.5;
-          if(f.y > snowCanvas.height) f.y = -10;
-          if(f.x > snowCanvas.width) f.x = 0;
-          if(f.x < 0) f.x = snowCanvas.width;
+        if (month === 12 && day >= 1 && day <= 28) {
+            edition = "Christmas Edition";
+            showChristmasEffect = true;
+        } else if (month === 12 && day >= 30 || (month === 1 && day === 1)) {
+            edition = "New Year Edition";
+            showNewYearEffect = true;
+            newYearMessage = (month === 12) ? "Szczęśliwego Sylwestra!" : "Szczęśliwego Nowego Roku!";
         }
-        ctx.fill();
-        if (christmas === 1 && sessionStorage.getItem('christmasShown')) requestAnimationFrame(drawSnow);
-      }
 
-      drawSnow();
+        const baseVersion = "SGS 2.0";
+        const fullVersion = edition ? `${baseVersion} ${edition}` : baseVersion;
+        document.getElementById('appVersion').textContent = fullVersion;
 
-      // Po 3 sekundach wszystko znika
-      setTimeout(() => {
-        christmasText.style.opacity = '0';
-        ctx.clearRect(0, 0, snowCanvas.width, snowCanvas.height);
-        snowCanvas.style.display = 'none';
-      }, 3000);
-    }
+        const APP_VERSION = fullVersion;
+        const SHOW_WARNING = 0;
 
-    // === RESZTA TWOJEGO KODU BEZ ZMIAN ===
-    function capitalizeName(name) {
-      return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
-    }
-    const logo = document.getElementById('logo');
-    const mainContent = document.getElementById('mainContent');
-    const loginNoticeBtn = document.getElementById('loginNoticeBtn');
-    const status = document.getElementById('status');
-    const usernameSpan = document.getElementById('username');
-    const openGateBtn = document.getElementById('btn1');
-    const bottomLogo = document.querySelector('.logo');
-    const settingsBtn = document.getElementById('settingsBtn');
-    const updateScreen = document.getElementById("updateScreen");
-    const updateBtn = document.getElementById("updateBtn");
-    const progressBar = document.getElementById("progressBar");
-    const progressBarInner = document.getElementById("progressBarInner");
+        const warningMsg = document.getElementById('warningMsg');
+        if(SHOW_WARNING) warningMsg.style.display = 'block';
 
-    const bgSettings = document.getElementById('bgSettings');
-    const bgButtons = document.querySelectorAll('.bgBtn');
-    const customBgInput = document.getElementById('customBgUrl');
-    const applyCustomBgBtn = document.getElementById('applyCustomBg');
+        // === ŚWIĄTECZNY EFEKT ===
+        if (showChristmasEffect && !sessionStorage.getItem('christmasShown')) {
+            sessionStorage.setItem('christmasShown', 'true');
 
-    let userId = null;
-    let longPressTimer = null;
-    let dragEnabled = false;
+            const christmasText = document.getElementById('christmasText');
+            const snowCanvas = document.getElementById('snowCanvas');
+            const ctx = snowCanvas.getContext('2d');
+            snowCanvas.width = window.innerWidth;
+            snowCanvas.height = window.innerHeight;
 
-    // reszta Twojego kodu bez zmian...
-    function checkUpdate() {
-      const storedVersion = localStorage.getItem("SGS_version");
-      if (storedVersion !== APP_VERSION) {
-        updateScreen.style.display = "flex";
-        mainContent.style.display = "none";
-        settingsBtn.style.display = "none";
-        logo.style.display = "none";
-      } else {
-        showLogoThenAskName();
-      }
-    }
-    updateBtn.addEventListener("click", () => {
-      updateBtn.style.display = "none";
-      progressBar.style.display = "block";
-      let progress = 0;
-      const interval = setInterval(() => {
-        progress += 20;
-        progressBarInner.style.width = progress + "%";
-        if (progress >= 100) {
-          clearInterval(interval);
-          localStorage.setItem("SGS_version", APP_VERSION);
-          updateScreen.style.display = "none";
-          settingsBtn.style.display = "block";
-          showLogoThenAskName();
+            // Pokaż napis
+            christmasText.style.opacity = '1';
+
+            // Animacja śniegu
+            let snowflakes = [];
+            for(let i = 0; i < 150; i++) {
+                snowflakes.push({
+                    x: Math.random() * snowCanvas.width,
+                    y: Math.random() * snowCanvas.height,
+                    r: Math.random() * 4 + 1,
+                    d: Math.random() + 1,
+                    speed: Math.random() * 1 + 0.5
+                });
+            }
+
+            function drawSnow() {
+                ctx.clearRect(0, 0, snowCanvas.width, snowCanvas.height);
+                ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+                ctx.beginPath();
+                for(let i = 0; i < snowflakes.length; i++) {
+                    let f = snowflakes[i];
+                    ctx.moveTo(f.x, f.y);
+                    ctx.arc(f.x, f.y, f.r, 0, Math.PI*2, true);
+                    f.y += f.speed;
+                    f.x += Math.sin(f.y / 30) * 0.5;
+                    if(f.y > snowCanvas.height) f.y = -10;
+                    if(f.x > snowCanvas.width) f.x = 0;
+                    if(f.x < 0) f.x = snowCanvas.width;
+                }
+                ctx.fill();
+                requestAnimationFrame(drawSnow);
+            }
+
+            drawSnow();
+
+            // Po 4 sekundach wszystko znika
+            setTimeout(() => {
+                christmasText.style.opacity = '0';
+                ctx.clearRect(0, 0, snowCanvas.width, snowCanvas.height);
+                snowCanvas.style.display = 'none';
+            }, 4000);
         }
-      }, 1000);
-    });
 
-    settingsBtn.addEventListener('click', () => {
-      dragEnabled = !dragEnabled;
-      settingsBtn.style.background = dragEnabled ? "rgba(0,128,0,0.7)" : "rgba(0,0,0,0.5)";
-      bgSettings.style.display = bgSettings.style.display === 'none' ? 'block' : 'none';
-    });
+        // === SYLWESTER / NOWY ROK ===
+        if (showNewYearEffect && !sessionStorage.getItem('newYearShown')) {
+            sessionStorage.setItem('newYearShown', 'true');
 
-    bgButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const img = btn.getAttribute('data-img');
-        document.body.style.background = `url('${img}') no-repeat center center fixed`;
-        document.body.style.backgroundSize = 'cover';
-        localStorage.setItem('SGS_bg', img);
-      });
-    });
+            const newYearText = document.getElementById('newYearText');
+            const fireworksCanvas = document.getElementById('fireworksCanvas');
+            const ctx = fireworksCanvas.getContext('2d');
+            fireworksCanvas.width = window.innerWidth;
+            fireworksCanvas.height = window.innerHeight;
 
-    applyCustomBgBtn.addEventListener('click', () => {
-      const url = customBgInput.value.trim();
-      if(url) {
-        document.body.style.background = `url('${url}') no-repeat center center fixed`;
-        document.body.style.backgroundSize = 'cover';
-        localStorage.setItem('SGS_bg', url);
-      }
-    });
+            newYearText.textContent = newYearMessage;
+            newYearText.style.opacity = '1';
 
-    const savedBg = localStorage.getItem('SGS_bg');
-    if(savedBg) {
-      document.body.style.background = `url('${savedBg}') no-repeat center center fixed`;
-      document.body.style.backgroundSize = 'cover';
-    }
+            let particles = [];
 
-    function makeDraggable(el) {
-      let offsetY, isDragging = false;
-      el.addEventListener("mousedown", startDrag);
-      el.addEventListener("touchstart", startDrag);
-      function startDrag(e) {
-        if (!dragEnabled) return;
-        isDragging = true;
-        offsetY = (e.clientY || e.touches[0].clientY) - el.offsetTop;
-        document.addEventListener("mousemove", onDrag);
-        document.addEventListener("mouseup", stopDrag);
-        document.addEventListener("touchmove", onDrag);
-        document.addEventListener("touchend", stopDrag);
-      }
-      function onDrag(e) {
-        if (!isDragging) return;
-        const y = (e.clientY || e.touches[0].clientY) - offsetY;
-        el.style.top = y + "px";
-      }
-      function stopDrag() {
-        if (!isDragging) return;
-        isDragging = false;
-        localStorage.setItem("btn1_top", el.style.top);
-        document.removeEventListener("mousemove", onDrag);
-        document.removeEventListener("mouseup", onDrag);
-        document.removeEventListener("touchmove", onDrag);
-        document.removeEventListener("touchend", onDrag);
-      }
-    }
+            function createFirework() {
+                const x = Math.random() * fireworksCanvas.width;
+                const y = Math.random() * fireworksCanvas.height * 0.6 + fireworksCanvas.height * 0.2;
+                const color = `hsl(${Math.random()*360}, 100%, 50%)`;
+                const particleCount = 80 + Math.random() * 60;
 
-    function loadButtonPosition() {
-      const top = localStorage.getItem("btn1_top");
-      if (top) {
-        openGateBtn.style.top = top;
-      } else {
-        openGateBtn.style.top = "50%";
-      }
-    }
-    makeDraggable(openGateBtn);
-    loadButtonPosition();
+                for (let i = 0; i < particleCount; i++) {
+                    particles.push({
+                        x: x,
+                        y: y,
+                        vx: Math.random() * 8 - 4,
+                        vy: Math.random() * 8 - 6,
+                        radius: Math.random() * 2 + 1,
+                        color: color,
+                        alpha: 1,
+                        decay: Math.random() * 0.02 + 0.015
+                    });
+                }
+            }
 
-    function askForName() {
-      let name = prompt("Podaj imię:");
-      if (name && name.trim()) {
-        userId = capitalizeName(name.trim());
-        localStorage.setItem("SGS_userId", userId);
-        showMainContent();
-      } else {
-        userId = null;
-        localStorage.removeItem("SGS_userId");
-        showLoginNotice();
-      }
-    }
+            function drawFireworks() {
+                ctx.clearRect(0, 0, fireworksCanvas.width, fireworksCanvas.height);
 
-    function showLogoThenAskName() {
-      userId = localStorage.getItem("SGS_userId");
-      if (!userId) {
-        logo.style.display = 'block';
-        mainContent.style.display = 'none';
-        loginNoticeBtn.style.display = 'none';
-        setTimeout(() => {
-          logo.style.display = 'none';
-          showLoginNotice();
-        }, 3000);
-      } else {
-        logo.style.display = 'none';
-        showMainContent();
-      }
-    }
+                particles.forEach((p, i) => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.1;
+                    p.alpha -= p.decay;
 
-    function showMainContent() {
-      usernameSpan.textContent = userId;
-      mainContent.style.display = 'block';
-      loginNoticeBtn.style.display = 'none';
-      bottomLogo.style.display = 'block';
-      settingsBtn.style.display = 'block';
-    }
+                    if (p.alpha <= 0) {
+                        particles.splice(i, 1);
+                        return;
+                    }
 
-    function showLoginNotice() {
-      mainContent.style.display = 'none';
-      loginNoticeBtn.style.display = 'inline-block';
-      bottomLogo.style.display = 'none';
-    }
+                    ctx.globalAlpha = p.alpha;
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                });
 
-    loginNoticeBtn.addEventListener('click', () => askForName());
+                ctx.globalAlpha = 1;
 
-    openGateBtn.addEventListener('click', () => {
-      if (!userId) return;
-      showMessage("Wysyłam polecenie HTTP", 1000);
-      sendBlynkRequest();
-    });
+                if (Math.random() < 0.12) createFirework();
+                requestAnimationFrame(drawFireworks);
+            }
 
-    function showMessage(text, duration) {
-      const original = status.textContent;
-      status.textContent = text;
-      setTimeout(() => {
-        status.textContent = original;
-      }, duration);
-    }
+            for (let i = 0; i < 8; i++) {
+                setTimeout(createFirework, i * 500);
+            }
+            drawFireworks();
 
-    function sendBlynkRequest() {
-      fetch(`https://fra1.blynk.cloud/external/api/update?token=zAM3zOp4JCYabvYGvtKIz9Gv0My3OIYs&v3=1`)
-        .then(response => response.text())
-        .then(data => {
-          setTimeout(() => {
-            fetch(`https://fra1.blynk.cloud/external/api/update?token=zAM3zOp4JCYabvYGvtKIz9Gv0My3OIYs&v3=0`);
-          }, 1000);
+            setTimeout(() => {
+                newYearText.style.opacity = '0';
+                ctx.clearRect(0, 0, fireworksCanvas.width, fireworksCanvas.height);
+                fireworksCanvas.style.display = 'none';
+            }, 6000);
+        }
+
+        // === RESZTA TWOJEGO KODU BEZ ZMIAN ===
+        function capitalizeName(name) {
+            return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+        }
+        const logo = document.getElementById('logo');
+        const mainContent = document.getElementById('mainContent');
+        const loginNoticeBtn = document.getElementById('loginNoticeBtn');
+        const status = document.getElementById('status');
+        const usernameSpan = document.getElementById('username');
+        const openGateBtn = document.getElementById('btn1');
+        const bottomLogo = document.querySelector('.logo');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const updateScreen = document.getElementById("updateScreen");
+        const progressBarInner = document.getElementById("progressBarInner");
+
+        const bgSettings = document.getElementById('bgSettings');
+        const bgButtons = document.querySelectorAll('.bgBtn');
+        const customBgInput = document.getElementById('customBgUrl');
+        const applyCustomBgBtn = document.getElementById('applyCustomBg');
+
+        let userId = null;
+        let longPressTimer = null;
+        let dragEnabled = false;
+
+        // === AUTOMATYCZNA AKTUALIZACJA BEZ PRZYCISKU ===
+        function checkUpdate() {
+            const storedVersion = localStorage.getItem("SGS_version");
+            if (storedVersion !== APP_VERSION) {
+                updateScreen.style.display = "flex";
+                mainContent.style.display = "none";
+                settingsBtn.style.display = "none";
+                logo.style.display = "none";
+
+                let progress = 0;
+                progressBarInner.style.width = "0%";
+
+                const interval = setInterval(() => {
+                    progress += 10;
+                    progressBarInner.style.width = progress + "%";
+                    if (progress >= 100) {
+                        clearInterval(interval);
+                        localStorage.setItem("SGS_version", APP_VERSION);
+                        updateScreen.style.display = "none";
+                        settingsBtn.style.display = "block";
+                        showLogoThenAskName();
+                    }
+                }, 500); // 10 kroków po 500ms = 5 sekund
+            } else {
+                showLogoThenAskName();
+            }
+        }
+
+        settingsBtn.addEventListener('click', () => {
+            dragEnabled = !dragEnabled;
+            settingsBtn.style.background = dragEnabled ? "rgba(0,128,0,0.7)" : "rgba(0,0,0,0.5)";
+            bgSettings.style.display = bgSettings.style.display === 'none' ? 'block' : 'none';
         });
-    }
 
-    function logout() {
-      localStorage.removeItem("SGS_userId");
-      userId = null;
-      showLoginNotice();
-    }
+        bgButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const img = btn.getAttribute('data-img');
+                document.body.style.background = `url('${img}') no-repeat center center fixed`;
+                document.body.style.backgroundSize = 'cover';
+                localStorage.setItem('SGS_bg', img);
+            });
+        });
 
-    status.addEventListener('mousedown', startLongPress);
-    status.addEventListener('touchstart', startLongPress);
-    status.addEventListener('mouseup', cancelLongPress);
-    status.addEventListener('mouseleave', cancelLongPress);
-    status.addEventListener('touchend', cancelLongPress);
-    status.addEventListener('touchcancel', cancelLongPress);
+        applyCustomBgBtn.addEventListener('click', () => {
+            const url = customBgInput.value.trim();
+            if(url) {
+                document.body.style.background = `url('${url}') no-repeat center center fixed`;
+                document.body.style.backgroundSize = 'cover';
+                localStorage.setItem('SGS_bg', url);
+            }
+        });
 
-    function startLongPress(e) {
-      e.preventDefault();
-      if (!userId) return;
-      longPressTimer = setTimeout(() => {
-        logout();
-      }, 8000);
-    }
+        const savedBg = localStorage.getItem('SGS_bg');
+        if(savedBg) {
+            document.body.style.background = `url('${savedBg}') no-repeat center center fixed`;
+            document.body.style.backgroundSize = 'cover';
+        }
 
-    function cancelLongPress(e) {
-      if (longPressTimer) {
-        clearTimeout(longPressTimer);
-        longPressTimer = null;
-      }
-    }
+        function makeDraggable(el) {
+            let offsetY, isDragging = false;
+            el.addEventListener("mousedown", startDrag);
+            el.addEventListener("touchstart", startDrag);
+            function startDrag(e) {
+                if (!dragEnabled) return;
+                isDragging = true;
+                offsetY = (e.clientY || e.touches[0].clientY) - el.offsetTop;
+                document.addEventListener("mousemove", onDrag);
+                document.addEventListener("mouseup", stopDrag);
+                document.addEventListener("touchmove", onDrag);
+                document.addEventListener("touchend", stopDrag);
+            }
+            function onDrag(e) {
+                if (!isDragging) return;
+                const y = (e.clientY || e.touches[0].clientY) - offsetY;
+                el.style.top = y + "px";
+            }
+            function stopDrag() {
+                if (!isDragging) return;
+                isDragging = false;
+                localStorage.setItem("btn1_top", el.style.top);
+                document.removeEventListener("mousemove", onDrag);
+                document.removeEventListener("mouseup", stopDrag);
+                document.removeEventListener("touchmove", onDrag);
+                document.removeEventListener("touchend", stopDrag);
+            }
+        }
 
-    checkUpdate();
-  </script>
+        function loadButtonPosition() {
+            const top = localStorage.getItem("btn1_top");
+            if (top) {
+                openGateBtn.style.top = top;
+            } else {
+                openGateBtn.style.top = "50%";
+            }
+        }
+        makeDraggable(openGateBtn);
+        loadButtonPosition();
+
+        function askForName() {
+            let name = prompt("Podaj imię:");
+            if (name && name.trim()) {
+                userId = capitalizeName(name.trim());
+                localStorage.setItem("SGS_userId", userId);
+                showMainContent();
+            } else {
+                userId = null;
+                localStorage.removeItem("SGS_userId");
+                showLoginNotice();
+            }
+        }
+
+        function showLogoThenAskName() {
+            userId = localStorage.getItem("SGS_userId");
+            if (!userId) {
+                logo.style.display = 'block';
+                mainContent.style.display = 'none';
+                loginNoticeBtn.style.display = 'none';
+                setTimeout(() => {
+                    logo.style.display = 'none';
+                    showLoginNotice();
+                }, 3000);
+            } else {
+                logo.style.display = 'none';
+                showMainContent();
+            }
+        }
+
+        function showMainContent() {
+            usernameSpan.textContent = userId;
+            mainContent.style.display = 'block';
+            loginNoticeBtn.style.display = 'none';
+            bottomLogo.style.display = 'block';
+            settingsBtn.style.display = 'block';
+        }
+
+        function showLoginNotice() {
+            mainContent.style.display = 'none';
+            loginNoticeBtn.style.display = 'inline-block';
+            bottomLogo.style.display = 'none';
+        }
+
+        loginNoticeBtn.addEventListener('click', () => askForName());
+
+        openGateBtn.addEventListener('click', () => {
+            if (!userId) return;
+            showMessage("Wysyłam polecenie HTTP", 1000);
+            sendBlynkRequest();
+        });
+
+        function showMessage(text, duration) {
+            const original = status.textContent;
+            status.textContent = text;
+            setTimeout(() => {
+                status.textContent = original;
+            }, duration);
+        }
+
+        function sendBlynkRequest() {
+            fetch(`https://fra1.blynk.cloud/external/api/update?token=zAM3zOp4JCYabvYGvtKIz9Gv0My3OIYs&v3=1`)
+                .then(response => response.text())
+                .then(data => {
+                    setTimeout(() => {
+                        fetch(`https://fra1.blynk.cloud/external/api/update?token=zAM3zOp4JCYabvYGvtKIz9Gv0My3OIYs&v3=0`);
+                    }, 1000);
+                });
+        }
+
+        function logout() {
+            localStorage.removeItem("SGS_userId");
+            userId = null;
+            showLoginNotice();
+        }
+
+        status.addEventListener('mousedown', startLongPress);
+        status.addEventListener('touchstart', startLongPress);
+        status.addEventListener('mouseup', cancelLongPress);
+        status.addEventListener('mouseleave', cancelLongPress);
+        status.addEventListener('touchend', cancelLongPress);
+        status.addEventListener('touchcancel', cancelLongPress);
+
+        function startLongPress(e) {
+            e.preventDefault();
+            if (!userId) return;
+            longPressTimer = setTimeout(() => {
+                logout();
+            }, 8000);
+        }
+
+        function cancelLongPress(e) {
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            }
+        }
+
+        checkUpdate();
+    </script>
 </body>
 </html>
-

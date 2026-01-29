@@ -179,7 +179,6 @@
             border-radius: 16px;
             margin: 24px 0;
             transform: scale(1.02);
-            filter: contrast(1.15) brightness(1.1);
         }
         .scanner-status {
             text-align: center;
@@ -208,9 +207,8 @@
             <button onclick="showManualInput()">Wpisz kod ręcznie</button>
 
             <div id="qr-scanner" style="display:none; margin:28px 0;">
-                <div class="scanner-status">Skanuje... (trzymaj kod w kadrze)</div>
-                <video id="qr-video" autoplay playsinline></video>
-                <canvas id="qr-canvas" style="display:none;"></canvas>
+                <div class="scanner-status">Skanuje... (trzymaj kod w kadrze, dobrze oświetlony)</div>
+                <video id="qr-video" autoplay playsinline muted></video>
                 <br><button onclick="stopQRScanner()" style="margin-top:20px;">Anuluj</button>
             </div>
 
@@ -222,12 +220,13 @@
         </div>
     </div>
 
-    <script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <!-- ZXing zamiast jsQR -->
+    <script src="https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script>
         let widgets = JSON.parse(localStorage.getItem('mySgsWidgets') || '[]');
         const mainScreen = document.getElementById('main-screen');
-        let scannerInterval, video, canvas, ctx;
+        let scannerInterval, video, codeReader;
         let sortable = null;
         let isEditMode = false;
 
@@ -270,39 +269,33 @@
         function startQRScanner() {
             document.getElementById('qr-scanner').style.display = 'block';
             document.getElementById('manual-input').style.display = 'none';
-            video = document.getElementById('qr-video');
-            canvas = document.getElementById('qr-canvas');
-            ctx = canvas.getContext('2d');
 
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-                .then(stream => {
-                    video.srcObject = stream;
-                    video.play();
-                    scannerInterval = setInterval(scanQR, 150); // trochę wolniej, ale stabilniej
-                })
-                .catch(err => {
-                    alert('Nie udało się uruchomić kamery.\nSprawdź uprawnienia i oświetlenie.\n\nBłąd: ' + err.message);
-                });
+            video = document.getElementById('qr-video');
+
+            codeReader = new ZXing.BrowserMultiFormatReader();
+
+            codeReader.decodeFromVideoDevice(null, 'qr-video', (result, err) => {
+                if (result) {
+                    processCode(result.text.trim());
+                    stopQRScanner();
+                }
+                if (err && !(err instanceof ZXing.NotFoundException)) {
+                    console.error(err);
+                }
+            }).catch(err => {
+                alert('Błąd kamery: ' + err);
+            });
         }
 
         function stopQRScanner() {
-            if (video?.srcObject) video.srcObject.getTracks().forEach(t => t.stop());
-            clearInterval(scannerInterval);
-            document.getElementById('qr-scanner').style.display = 'none';
-        }
-
-        function scanQR() {
-            if (video.readyState !== video.HAVE_ENOUGH_DATA) return;
-            canvas.height = video.videoHeight;
-            canvas.width = video.videoWidth;
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const code = jsQR(imageData.data, imageData.width, imageData.height);
-
-            if (code && code.data) {
-                processCode(code.data.trim());
+            if (codeReader) {
+                codeReader.reset();
+                codeReader = null;
             }
+            if (video?.srcObject) {
+                video.srcObject.getTracks().forEach(t => t.stop());
+            }
+            document.getElementById('qr-scanner').style.display = 'none';
         }
 
         function showManualInput() {
@@ -317,14 +310,12 @@
         }
 
         function processCode(text) {
-            // Najbardziej odporna wersja – usuwa wszystko co nie jest literą/cyfrą/nawiasem itp.
             const cleaned = text.replace(/[^a-zA-Z0-9()]/g, '');
 
-            // Akceptuje zarówno O jak i MO (literówka)
             const match = cleaned.match(/T\(([^)]+)\)TP\(([^)]+)\)PM\(([^)]+)\)(?:M)?O\(([^)]*)\)M?$/i);
 
             if (!match) {
-                alert(`Nie rozpoznano kodu QR\n\nTwój tekst:\n${text}\n\nPo wyczyszczeniu:\n${cleaned}\n\nPoprawny przykład:\nT(zAM3zOp4JCYabvYGvtKIz9Gv0My3OIYs)TP(V3)PM(switch)O(Brama)M`);
+                alert(`Nie rozpoznano formatu\n\nTwój kod:\n${text}\n\nPo wyczyszczeniu:\n${cleaned}\n\nPoprawny przykład:\nT(zAM3zOp4JCYabvYGvtKIz9Gv0My3OIYs)TP(V3)PM(switch)O(Brama)M`);
                 return;
             }
 
@@ -334,7 +325,7 @@
             const label = (labelRaw || '').trim();
 
             if (!['button', 'switch', 'display'].includes(mode)) {
-                alert(`Nieznany tryb: "${modeRaw}"\nDozwolone tylko: button, switch, display`);
+                alert(`Nieznany tryb: "${modeRaw}"`);
                 return;
             }
 
@@ -343,11 +334,10 @@
             localStorage.setItem('mySgsWidgets', JSON.stringify(widgets));
             renderWidgets();
             closeModal();
-            alert(`Dodano widżet: ${mode} (${label || 'bez nazwy'})`);
         }
 
         function removeWidget(index) {
-            if (!confirm('Usunąć widżet?')) return;
+            if (!confirm('Usunąć?')) return;
             widgets.splice(index, 1);
             localStorage.setItem('mySgsWidgets', JSON.stringify(widgets));
             renderWidgets();

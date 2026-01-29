@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My SGS</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0;
+            background: #0d0e14;
+            color: #e5e5e5;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #1c1433, #0f0b1f);
+            color: #f0f0ff;
+            padding: 18px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.7);
+        }
+        .header h1 { margin: 0; font-size: 1.7em; font-weight: 600; letter-spacing: 0.5px; }
+        .header-actions { position: absolute; right: 20px; display: flex; gap: 24px; }
+        .action-btn {
+            font-size: 38px;
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.18s, color 0.2s;
+            color: #c7b6ff;
+        }
+        .action-btn:hover { transform: scale(1.2); color: #e0d4ff; }
+
+        .main-screen {
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 18px;
+        }
+
+        .widget {
+            background: #14151f;
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.55);
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .widget.edit-mode {
+            transform: scale(1.04);
+            box-shadow: 0 10px 30px rgba(120, 80, 220, 0.35);
+        }
+        .widget .remove-btn {
+            display: none;
+            position: absolute;
+            top: -14px;
+            right: -14px;
+            width: 38px;
+            height: 38px;
+            background: #ff3b5c;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 24px;
+            line-height: 38px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(255,59,92,0.5);
+            z-index: 10;
+        }
+        .widget.edit-mode .remove-btn { display: block; }
+
+        button {
+            padding: 16px 48px;
+            background: #6a4aff;
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 1.3em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+            margin-top: 12px;
+        }
+        button:hover {
+            background: #7a5aff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(106,74,255,0.4);
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 120px;
+            height: 64px;
+            margin: 20px auto;
+            display: block;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; inset: 0;
+            background: #2a2f44; transition: .4s; border-radius: 64px;
+        }
+        .slider:before {
+            position: absolute; content:""; height:56px; width:56px; left:4px; bottom:4px;
+            background: #e0d4ff; transition: .4s; border-radius:50%; box-shadow:0 3px 10px rgba(0,0,0,0.5);
+        }
+        input:checked + .slider { background: #8a6aff; }
+        input:checked + .slider:before { transform: translateX(56px); }
+
+        .simple-display {
+            background: #000;
+            color: #d0bfff;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 4.2rem;
+            font-weight: bold;
+            padding: 24px 28px;
+            border-radius: 16px;
+            text-align: center;
+            min-height: 110px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            letter-spacing: 4px;
+            box-shadow: inset 0 0 30px rgba(208,191,255,0.15), 0 0 20px rgba(208,191,255,0.25);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+
+        .label {
+            font-size: 1.4em;
+            color: #c7b6ff;
+            text-align: center;
+            margin-bottom: 16px;
+            font-weight: 500;
+        }
+
+        #modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+        }
+        .modal-content {
+            background: #14151f;
+            color: #e0e0ff;
+            padding: 36px;
+            border-radius: 20px;
+            width: 400px;
+            max-width: 92%;
+            text-align: center;
+            box-shadow: 0 14px 50px rgba(0,0,0,0.8);
+        }
+        textarea {
+            width: 100%;
+            padding: 16px;
+            margin: 16px 0 24px;
+            background: #0d0e14;
+            color: #e0e0ff;
+            border: none;
+            border-radius: 14px;
+            font-family: monospace;
+            font-size: 1.1em;
+            resize: vertical;
+            min-height: 130px;
+            box-shadow: inset 0 0 12px rgba(0,0,0,0.6);
+        }
+        #qr-video {
+            width: 100%;
+            max-width: 380px;
+            border-radius: 16px;
+            margin: 24px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>My SGS</h1>
+        <div class="header-actions">
+            <span class="action-btn" id="editBtn">✎</span>
+            <span class="action-btn" onclick="openModal()">+</span>
+        </div>
+    </div>
+
+    <div class="main-screen" id="main-screen"></div>
+
+    <div id="modal">
+        <div class="modal-content">
+            <h2>Dodaj widżet</h2>
+            <button onclick="startQRScanner()">Skanuj QR</button><br><br>
+            <button onclick="showManualInput()">Wpisz kod ręcznie</button>
+
+            <div id="qr-scanner" style="display:none; margin:28px 0;">
+                <video id="qr-video" autoplay playsinline></video>
+                <canvas id="qr-canvas" style="display:none;"></canvas>
+                <br><button onclick="stopQRScanner()" style="margin-top:20px;">Anuluj</button>
+            </div>
+
+            <div id="manual-input" style="display:none; margin-top:28px;">
+                <label>Wklej cały kod:</label>
+                <textarea id="full-code" placeholder="T(........)TP(V3)PM(switch)O(Brama)M" spellcheck="false"></textarea>
+                <button onclick="addFromFullCode()">Dodaj</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script>
+        let widgets = JSON.parse(localStorage.getItem('mySgsWidgets') || '[]');
+        const mainScreen = document.getElementById('main-screen');
+        let scannerInterval, video, canvas, ctx;
+        let sortable = null;
+        let isEditMode = false;
+
+        document.getElementById('editBtn').onclick = toggleEditMode;
+
+        function toggleEditMode() {
+            isEditMode = !isEditMode;
+            document.getElementById('editBtn').textContent = isEditMode ? '✔' : '✎';
+            document.querySelectorAll('.widget').forEach(w => w.classList.toggle('edit-mode', isEditMode));
+
+            if (isEditMode) {
+                sortable = Sortable.create(mainScreen, {
+                    animation: 180,
+                    handle: '.widget',
+                    onEnd: () => {
+                        const newOrder = Array.from(mainScreen.children).map(el => {
+                            const pin = el.dataset.pin;
+                            return widgets.find(w => w.pin === pin);
+                        }).filter(Boolean);
+                        widgets = newOrder;
+                        localStorage.setItem('mySgsWidgets', JSON.stringify(widgets));
+                    }
+                });
+            } else if (sortable) {
+                sortable.destroy();
+                sortable = null;
+            }
+        }
+
+        function openModal() {
+            document.getElementById('modal').style.display = 'flex';
+            document.getElementById('full-code').value = '';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+            stopQRScanner();
+        }
+
+        function startQRScanner() {
+            document.getElementById('qr-scanner').style.display = 'block';
+            document.getElementById('manual-input').style.display = 'none';
+            video = document.getElementById('qr-video');
+            canvas = document.getElementById('qr-canvas');
+            ctx = canvas.getContext('2d');
+
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                .then(stream => { video.srcObject = stream; video.play(); scannerInterval = setInterval(scanQR, 100); })
+                .catch(err => alert('Kamera niedostępna'));
+        }
+
+        function stopQRScanner() {
+            if (video?.srcObject) video.srcObject.getTracks().forEach(t => t.stop());
+            clearInterval(scannerInterval);
+            document.getElementById('qr-scanner').style.display = 'none';
+        }
+
+        function scanQR() {
+            if (video.readyState !== video.HAVE_ENOUGH_DATA) return;
+            canvas.height = video.videoHeight;
+            canvas.width = video.videoWidth;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const code = jsQR(ctx.getImageData(0, 0, canvas.width, canvas.height).data, canvas.width, canvas.height);
+
+            if (code) processCode(code.data.trim());
+        }
+
+        function showManualInput() {
+            document.getElementById('qr-scanner').style.display = 'none';
+            document.getElementById('manual-input').style.display = 'block';
+        }
+
+        function addFromFullCode() {
+            const text = document.getElementById('full-code').value.trim();
+            if (!text) return alert('Wklej kod');
+            processCode(text);
+        }
+
+        function processCode(text) {
+            // Rozszerzony regex – obsługuje O opcjonalnie i case-insensitive dla trybu
+            const match = text.match(/T\((.+?)\)TP\((.+?)\)PM\((.+?)\)M(?:O\((.+?)\)M)?$/i);
+            if (!match) {
+                alert('Nieprawidłowy format kodu QR\n\nOtrzymany tekst:\n' + text);
+                return;
+            }
+
+            let [, token, pin, modeRaw, label = ''] = match;
+            token = token.trim();
+            pin = pin.trim();
+            modeRaw = modeRaw.trim();
+            label = (label || '').trim();
+
+            const mode = modeRaw.toLowerCase();
+
+            if (!['button', 'switch', 'display'].includes(mode)) {
+                alert(`Nieznany tryb: "${modeRaw}"\n\nDozwolone: button, switch, display (niezależnie od wielkości liter)`);
+                return;
+            }
+
+            widgets = widgets.filter(w => w.pin !== pin);
+            widgets.push({ token, pin, mode, label });
+            localStorage.setItem('mySgsWidgets', JSON.stringify(widgets));
+            renderWidgets();
+            closeModal();
+        }
+
+        function removeWidget(index) {
+            if (!confirm('Usunąć widżet?')) return;
+            widgets.splice(index, 1);
+            localStorage.setItem('mySgsWidgets', JSON.stringify(widgets));
+            renderWidgets();
+            if (isEditMode) toggleEditMode();
+        }
+
+        function renderWidgets() {
+            mainScreen.innerHTML = '';
+            widgets.forEach((w, i) => {
+                const div = document.createElement('div');
+                div.className = 'widget';
+                div.dataset.pin = w.pin;
+
+                if (w.label) {
+                    const lbl = document.createElement('div');
+                    lbl.className = 'label';
+                    lbl.textContent = w.label;
+                    div.appendChild(lbl);
+                }
+
+                if (w.mode === 'button') {
+                    const btn = document.createElement('button');
+                    btn.textContent = w.label || 'Włącz';
+                    btn.onclick = () => sendBlynk(w.token, w.pin, '1');
+                    div.appendChild(btn);
+                } else if (w.mode === 'switch') {
+                    const labelEl = document.createElement('label');
+                    labelEl.className = 'switch';
+                    const input = document.createElement('input');
+                    input.type = 'checkbox';
+                    input.onchange = e => sendBlynk(w.token, w.pin, e.target.checked ? '1' : '0');
+                    const span = document.createElement('span');
+                    span.className = 'slider';
+                    labelEl.append(input, span);
+                    div.appendChild(labelEl);
+
+                    fetch(`https://blynk.cloud/external/api/get?token=${w.token}&${w.pin}`)
+                        .then(r => r.text()).then(v => input.checked = (v === '1')).catch(console.error);
+                } else if (w.mode === 'display') {
+                    const disp = document.createElement('div');
+                    disp.className = 'simple-display';
+                    disp.textContent = '----';
+                    div.appendChild(disp);
+
+                    const update = () => {
+                        fetch(`https://blynk.cloud/external/api/get?token=${w.token}&${w.pin}`)
+                            .then(r => r.text())
+                            .then(v => disp.textContent = v.trim() || '----')
+                            .catch(() => disp.textContent = 'ERR');
+                    };
+                    update();
+                    setInterval(update, 1500);
+                }
+
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-btn';
+                removeBtn.textContent = '×';
+                removeBtn.onclick = e => { e.stopPropagation(); removeWidget(i); };
+                div.appendChild(removeBtn);
+
+                mainScreen.appendChild(div);
+            });
+
+            if (isEditMode) toggleEditMode();
+        }
+
+        function sendBlynk(token, pin, value) {
+            fetch(`https://blynk.cloud/external/api/update?token=${token}&${pin}=${value}`)
+                .catch(console.error);
+        }
+
+        renderWidgets();
+    </script>
+</body>
+</html>

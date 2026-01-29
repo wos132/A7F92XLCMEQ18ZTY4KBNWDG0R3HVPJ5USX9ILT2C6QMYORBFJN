@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Logo jako favicon (ikona w zakładce i na ekranie głównym telefonu) -->
+    <link rel="icon" type="image/png" href="iconmysgs.png">
+    <link rel="apple-touch-icon" href="iconmysgs.png">
     <title>My SGS</title>
     <style>
         body {
@@ -220,13 +223,13 @@
         </div>
     </div>
 
-    <!-- ZXing zamiast jsQR -->
+    <!-- ZXing – nowoczesny i niezawodny skaner QR -->
     <script src="https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script>
         let widgets = JSON.parse(localStorage.getItem('mySgsWidgets') || '[]');
         const mainScreen = document.getElementById('main-screen');
-        let scannerInterval, video, codeReader;
+        let codeReader;
         let sortable = null;
         let isEditMode = false;
 
@@ -270,8 +273,7 @@
             document.getElementById('qr-scanner').style.display = 'block';
             document.getElementById('manual-input').style.display = 'none';
 
-            video = document.getElementById('qr-video');
-
+            const video = document.getElementById('qr-video');
             codeReader = new ZXing.BrowserMultiFormatReader();
 
             codeReader.decodeFromVideoDevice(null, 'qr-video', (result, err) => {
@@ -280,10 +282,10 @@
                     stopQRScanner();
                 }
                 if (err && !(err instanceof ZXing.NotFoundException)) {
-                    console.error(err);
+                    console.error('Błąd skanera:', err);
                 }
             }).catch(err => {
-                alert('Błąd kamery: ' + err);
+                alert('Nie udało się uruchomić skanera QR.\n\nSprawdź:\n- uprawnienia kamery\n- oświetlenie\n- czy strona jest na https\n\nBłąd: ' + err.message);
             });
         }
 
@@ -292,8 +294,9 @@
                 codeReader.reset();
                 codeReader = null;
             }
+            const video = document.getElementById('qr-video');
             if (video?.srcObject) {
-                video.srcObject.getTracks().forEach(t => t.stop());
+                video.srcObject.getTracks().forEach(track => track.stop());
             }
             document.getElementById('qr-scanner').style.display = 'none';
         }
@@ -315,7 +318,7 @@
             const match = cleaned.match(/T\(([^)]+)\)TP\(([^)]+)\)PM\(([^)]+)\)(?:M)?O\(([^)]*)\)M?$/i);
 
             if (!match) {
-                alert(`Nie rozpoznano formatu\n\nTwój kod:\n${text}\n\nPo wyczyszczeniu:\n${cleaned}\n\nPoprawny przykład:\nT(zAM3zOp4JCYabvYGvtKIz9Gv0My3OIYs)TP(V3)PM(switch)O(Brama)M`);
+                alert(`Nie rozpoznano kodu QR\n\nTwój tekst:\n${text}\n\nPo wyczyszczeniu:\n${cleaned}\n\nPrzykład poprawnego:\nT(zAM3zOp4JCYabvYGvtKIz9Gv0My3OIYs)TP(V3)PM(switch)O(Brama)M`);
                 return;
             }
 
@@ -325,7 +328,7 @@
             const label = (labelRaw || '').trim();
 
             if (!['button', 'switch', 'display'].includes(mode)) {
-                alert(`Nieznany tryb: "${modeRaw}"`);
+                alert(`Nieznany tryb: "${modeRaw}"\nDozwolone: button, switch, display`);
                 return;
             }
 
@@ -337,7 +340,7 @@
         }
 
         function removeWidget(index) {
-            if (!confirm('Usunąć?')) return;
+            if (!confirm('Usunąć widżet?')) return;
             widgets.splice(index, 1);
             localStorage.setItem('mySgsWidgets', JSON.stringify(widgets));
             renderWidgets();

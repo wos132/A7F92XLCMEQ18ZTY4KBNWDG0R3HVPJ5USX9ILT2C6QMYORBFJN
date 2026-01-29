@@ -178,6 +178,14 @@
             max-width: 380px;
             border-radius: 16px;
             margin: 24px 0;
+            transform: scale(1.02);
+            filter: contrast(1.15) brightness(1.1);
+        }
+        .scanner-status {
+            text-align: center;
+            margin: 12px 0;
+            color: #c7b6ff;
+            font-size: 1.1em;
         }
     </style>
 </head>
@@ -200,6 +208,7 @@
             <button onclick="showManualInput()">Wpisz kod ręcznie</button>
 
             <div id="qr-scanner" style="display:none; margin:28px 0;">
+                <div class="scanner-status">Skanuje... (trzymaj kod w kadrze)</div>
                 <video id="qr-video" autoplay playsinline></video>
                 <canvas id="qr-canvas" style="display:none;"></canvas>
                 <br><button onclick="stopQRScanner()" style="margin-top:20px;">Anuluj</button>
@@ -207,7 +216,7 @@
 
             <div id="manual-input" style="display:none; margin-top:28px;">
                 <label>Wklej cały kod:</label>
-                <textarea id="full-code" placeholder="T(........)TP(V3)PM(switch)O(Brama)M" spellcheck="false"></textarea>
+                <textarea id="full-code" placeholder="T(zAM3zOp4JCYabvYGvtKIz9Gv0My3OIYs)TP(V3)PM(switch)O(Brama)M" spellcheck="false"></textarea>
                 <button onclick="addFromFullCode()">Dodaj</button>
             </div>
         </div>
@@ -266,8 +275,14 @@
             ctx = canvas.getContext('2d');
 
             navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-                .then(stream => { video.srcObject = stream; video.play(); scannerInterval = setInterval(scanQR, 100); })
-                .catch(err => alert('Kamera niedostępna'));
+                .then(stream => {
+                    video.srcObject = stream;
+                    video.play();
+                    scannerInterval = setInterval(scanQR, 150); // trochę wolniej, ale stabilniej
+                })
+                .catch(err => {
+                    alert('Nie udało się uruchomić kamery.\nSprawdź uprawnienia i oświetlenie.\n\nBłąd: ' + err.message);
+                });
         }
 
         function stopQRScanner() {
@@ -281,9 +296,13 @@
             canvas.height = video.videoHeight;
             canvas.width = video.videoWidth;
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const code = jsQR(ctx.getImageData(0, 0, canvas.width, canvas.height).data, canvas.width, canvas.height);
 
-            if (code) processCode(code.data.trim());
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+            if (code && code.data) {
+                processCode(code.data.trim());
+            }
         }
 
         function showManualInput() {
@@ -298,23 +317,24 @@
         }
 
         function processCode(text) {
-            // Rozszerzony regex – obsługuje O opcjonalnie i case-insensitive dla trybu
-            const match = text.match(/T\((.+?)\)TP\((.+?)\)PM\((.+?)\)M(?:O\((.+?)\)M)?$/i);
+            // Najbardziej odporna wersja – usuwa wszystko co nie jest literą/cyfrą/nawiasem itp.
+            const cleaned = text.replace(/[^a-zA-Z0-9()]/g, '');
+
+            // Akceptuje zarówno O jak i MO (literówka)
+            const match = cleaned.match(/T\(([^)]+)\)TP\(([^)]+)\)PM\(([^)]+)\)(?:M)?O\(([^)]*)\)M?$/i);
+
             if (!match) {
-                alert('Nieprawidłowy format kodu QR\n\nOtrzymany tekst:\n' + text);
+                alert(`Nie rozpoznano kodu QR\n\nTwój tekst:\n${text}\n\nPo wyczyszczeniu:\n${cleaned}\n\nPoprawny przykład:\nT(zAM3zOp4JCYabvYGvtKIz9Gv0My3OIYs)TP(V3)PM(switch)O(Brama)M`);
                 return;
             }
 
-            let [, token, pin, modeRaw, label = ''] = match;
-            token = token.trim();
-            pin = pin.trim();
-            modeRaw = modeRaw.trim();
-            label = (label || '').trim();
+            const [, token, pin, modeRaw, labelRaw = ''] = match;
 
-            const mode = modeRaw.toLowerCase();
+            const mode = modeRaw.toLowerCase().trim();
+            const label = (labelRaw || '').trim();
 
             if (!['button', 'switch', 'display'].includes(mode)) {
-                alert(`Nieznany tryb: "${modeRaw}"\n\nDozwolone: button, switch, display (niezależnie od wielkości liter)`);
+                alert(`Nieznany tryb: "${modeRaw}"\nDozwolone tylko: button, switch, display`);
                 return;
             }
 
@@ -323,6 +343,7 @@
             localStorage.setItem('mySgsWidgets', JSON.stringify(widgets));
             renderWidgets();
             closeModal();
+            alert(`Dodano widżet: ${mode} (${label || 'bez nazwy'})`);
         }
 
         function removeWidget(index) {

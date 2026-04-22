@@ -259,19 +259,19 @@
         // === AUTORYZACJA ===
         function authStart() {
             if (!blynkToken) {
-                let choice = confirm("Brak TOKENU Blynk. Czy chcesz go ZESKANOWAĆ z kodu QR?\n(Wybierz 'Anuluj', aby wpisać ręcznie)");
+                let choice = confirm("Brak TOKENU. Czy chcesz go ZESKANOWAĆ z kodu QR?\n(Wybierz 'Anuluj', aby wpisać ręcznie)");
                 if (choice) {
                     startQrScanner();
                     return; // Przerwij, skaner sam wywoła authStart po sukcesie
                 } else {
-                    blynkToken = prompt("Podaj TOKEN Blynk ręcznie:");
+                    blynkToken = prompt("Podaj TOKEN ręcznie:");
                     if (!blynkToken) return authStart();
                     localStorage.setItem("SGS_token", blynkToken);
                 }
             }
 
             if (isAuthorized === "true") return;
-            const userPin = prompt(`Podaj PIN (${Number(selectedPinIndex) + 1}/20):`);
+            const userPin = prompt(`Podaj PIN T${Number(selectedPinIndex) + 1}M:`);
             if (userPin !== selectedPin) {
                 alert("Błędny PIN!");
                 return authStart();

@@ -202,6 +202,8 @@
         <hr style="margin:10px 0; border-color:#888;">
         <input type="text" id="customBgUrl" placeholder="Własny URL tła">
         <button id="applyCustomBg">Zastosuj</button>
+        <hr style="margin:10px 0; border-color:#ff4444;">
+        <button id="resetAppBtn" style="background: #ff4444; width: 100%; font-weight: bold;">⚠️ Resetuj Aplikację</button>
     </div>
 
     <img src="ElektronikEle_preview_rev_1.png" id="logo" alt="Logo ElektronikEle" />
@@ -219,6 +221,20 @@
     </div>
 
     <script>
+
+        const resetAppBtn = document.getElementById('resetAppBtn');
+
+        resetAppBtn.addEventListener('click', () => {
+            // Potwierdzenie, żeby użytkownik nie kliknął przez przypadek
+            const confirmReset = confirm("Czy na pewno chcesz usunąć WSZYSTKIE dane? (Imię, Token, PIN i ustawienia zostaną skasowane)");
+    
+            if (confirmReset) {
+                localStorage.clear(); // Czyści całe localStorage
+                alert("Dane zostały usunięte. Aplikacja uruchomi się ponownie.");
+                window.location.reload(); // Odświeża stronę, aby wrócić do stanu początkowego
+            }
+        });
+
         // === ZMIENNE GLOBALNE ===
         let blynkToken = localStorage.getItem("SGS_token");
         let selectedPin = localStorage.getItem("SGS_pin");

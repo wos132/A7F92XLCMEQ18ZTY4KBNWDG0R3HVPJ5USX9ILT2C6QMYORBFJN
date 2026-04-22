@@ -259,12 +259,12 @@
         // === AUTORYZACJA ===
         function authStart() {
             if (!blynkToken) {
-                let choice = confirm("Brak TOKENU. Czy chcesz go ZESKANOWAĆ z kodu QR?\n(Wybierz 'Anuluj', aby wpisać ręcznie)");
+                let choice = confirm("Brak TOKENU Blynk. Czy chcesz go ZESKANOWAĆ z kodu QR?\n(Wybierz 'Anuluj', aby wpisać ręcznie)");
                 if (choice) {
                     startQrScanner();
                     return; // Przerwij, skaner sam wywoła authStart po sukcesie
                 } else {
-                    blynkToken = prompt("Podaj TOKEN ręcznie:");
+                    blynkToken = prompt("Podaj TOKEN Blynk ręcznie:");
                     if (!blynkToken) return authStart();
                     localStorage.setItem("SGS_token", blynkToken);
                 }
@@ -556,15 +556,19 @@
         }
 
         function showLogoThenAskName() {
-            userId = localStorage.getItem("SGS_userId");
-            if (!userId) {
-                logo.style.display = 'block';
-                setTimeout(() => {
-                    logo.style.display = 'none';
-                    showLoginNotice();
+        userId = localStorage.getItem("SGS_userId");
+    
+        if (!userId) {
+            // Użytkownik nie jest zalogowany - pokaż logo, a potem zapytaj o imię
+            logo.style.display = 'block';
+            setTimeout(() => {
+                logo.style.display = 'none';
+                showLoginNotice();
                 }, 3000);
-            } else {
-                showMainContent();
+        } else {
+            // Użytkownik jest już w bazie - od razu pokaż główną treść, bez logo
+            logo.style.display = 'none'; // Upewnij się, że jest ukryte
+            showMainContent();
             }
         }
 
@@ -597,7 +601,7 @@
         }
 
         function sendBlynkRequest() {
-            fetch(`https://fra1.blynk.cloud/external/api/update?token=${blynkToken}&v3=1`)
+            fetch(`https://fra1.blynk.cloud/external/api/update?token=${blynkToken}&v0=1`)
                 .then(() => {
                     setTimeout(() => {
                         fetch(`https://fra1.blynk.cloud/external/api/update?token=${blynkToken}&v3=0`);

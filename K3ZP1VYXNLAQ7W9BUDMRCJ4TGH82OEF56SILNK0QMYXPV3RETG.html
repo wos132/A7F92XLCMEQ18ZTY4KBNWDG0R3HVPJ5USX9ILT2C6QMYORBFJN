@@ -597,7 +597,7 @@
         }
 
         function sendBlynkRequest() {
-            fetch(`https://fra1.blynk.cloud/external/api/update?token=${blynkToken}&v0=1`)
+            fetch(`https://fra1.blynk.cloud/external/api/update?token=${blynkToken}&v3=1`)
                 .then(() => {
                     setTimeout(() => {
                         fetch(`https://fra1.blynk.cloud/external/api/update?token=${blynkToken}&v3=0`);

@@ -108,6 +108,38 @@
             transition: opacity 1s ease;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
+        #halloweenText {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 48px;
+            font-weight: bold;
+            color: #ff7518;
+            text-shadow:
+                0 0 10px #000,
+                0 0 20px #ff7518,
+                0 0 40px #ff4500,
+                0 0 60px #8a2be2;
+            z-index: 999;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 1s ease;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            animation: halloweenPulse 1.2s ease-in-out infinite alternate;
+        }
+        @keyframes halloweenPulse {
+            from { text-shadow: 0 0 10px #000, 0 0 20px #ff7518, 0 0 30px #ff4500; }
+            to   { text-shadow: 0 0 15px #000, 0 0 35px #ff7518, 0 0 70px #8a2be2; }
+        }
+        #halloweenCanvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 998;
+        }
         #snowCanvas, #fireworksCanvas {
             position: fixed;
             top: 0; left: 0;
@@ -186,6 +218,8 @@
 
     <div id="newYearText"></div>
     <canvas id="fireworksCanvas"></canvas>
+    <div id="halloweenText"></div>
+    <canvas id="halloweenCanvas"></canvas>
 
     <div id="updateScreen">
         <h2>Dostępna nowa wersja aplikacji</h2>
@@ -333,6 +367,8 @@
         let showChristmasEffect = false;
         let showNewYearEffect = false;
         let newYearMessage = "";
+        let showHalloweenEffect = false;
+        let halloweenMessage = "";
 
         if (month === 12 && day >= 1 && day <= 28) {
             edition = "Christmas Edition";
@@ -341,6 +377,10 @@
             edition = "New Year Edition";
             showNewYearEffect = true;
             newYearMessage = (month === 12) ? "Szczęśliwego Sylwestra!" : "Szczęśliwego Nowego Roku!";
+        } else if (month === 10 && day >= 29) {
+            edition = "Halloween Edition";
+            showHalloweenEffect = true;
+            halloweenMessage = "🎃 Straszny Halloween! 🎃";
         }
 
         const baseVersion = "SGS 2.1";
@@ -444,6 +484,71 @@
                 fireworksCanvas.style.display = 'none';
             }, 6000);
         }
+        if (showHalloweenEffect && !sessionStorage.getItem('halloweenShown')) {
+    sessionStorage.setItem('halloweenShown', 'true');
+    const halloweenText = document.getElementById('halloweenText');
+    const hCanvas = document.getElementById('halloweenCanvas');
+    const hctx = hCanvas.getContext('2d');
+    hCanvas.width = window.innerWidth;
+    hCanvas.height = window.innerHeight;
+    halloweenText.textContent = halloweenMessage;
+    halloweenText.style.opacity = '1';
+
+    const icons = ['🎃', '👻', '🦇', '🕷️', '💀'];
+    let sprites = [];
+    for (let i = 0; i < 35; i++) {
+        sprites.push({
+            x: Math.random() * hCanvas.width,
+            y: Math.random() * hCanvas.height,
+            size: Math.random() * 24 + 20,
+            speed: Math.random() * 1.2 + 0.4,
+            icon: icons[Math.floor(Math.random() * icons.length)],
+            phase: Math.random() * Math.PI * 2
+        });
+    }
+
+    let flash = 0;
+    let halloweenRunning = true;
+
+    function drawHalloween() {
+        if (!halloweenRunning) return;
+        hctx.clearRect(0, 0, hCanvas.width, hCanvas.height);
+
+        // ciemna, fioletowa poświata
+        hctx.fillStyle = 'rgba(20, 0, 30, 0.45)';
+        hctx.fillRect(0, 0, hCanvas.width, hCanvas.height);
+
+        // unoszące się ikonki
+        sprites.forEach(s => {
+            s.y -= s.speed;
+            s.phase += 0.03;
+            s.x += Math.sin(s.phase) * 0.8;
+            if (s.y < -50) {
+                s.y = hCanvas.height + 50;
+                s.x = Math.random() * hCanvas.width;
+            }
+            hctx.font = `${s.size}px serif`;
+            hctx.fillText(s.icon, s.x, s.y);
+        });
+
+        // losowy rozbłysk pioruna
+        if (Math.random() < 0.006) flash = 1;
+        if (flash > 0) {
+            hctx.fillStyle = `rgba(255, 255, 255, ${flash * 0.6})`;
+            hctx.fillRect(0, 0, hCanvas.width, hCanvas.height);
+            flash -= 0.05;
+        }
+
+        requestAnimationFrame(drawHalloween);
+    }
+    drawHalloween();
+
+    setTimeout(() => {
+        halloweenText.style.opacity = '0';
+        hCanvas.style.display = 'none';
+        halloweenRunning = false; // zatrzymuje pętlę animacji
+    }, 6000);
+}
 
         // === GŁÓWNA LOGIKA APLIKACJI ===
         function capitalizeName(name) {
